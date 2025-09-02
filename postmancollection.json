@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "d4fac8bd-ba64-420a-b093-6deac67f440d",
+		"name": "Truck Service API",
+		"description": "dev : mohammed\n\n[https://mostaql.com/u/abdelrahman_am/portfolio](https://mostaql.com/u/abdelrahman_am/portfolio)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47184773",
+		"_collection_link": "https://cryosat-candidate-47295749-8524400.postman.co/workspace/muhammed--work~6634c685-e1c3-42de-94ea-1092d96b1dde/collection/47184773-d4fac8bd-ba64-420a-b093-6deac67f440d?action=share&source=collection_link&creator=47184773"
+	},
+	"item": [
+		{
+			"name": "1. Register (Step 1)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "name",
+							"value": "Test Truck Owner",
+							"type": "text"
+						},
+						{
+							"key": "phone",
+							"value": "551264567",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "password123",
+							"type": "text"
+						},
+						{
+							"key": "account_type",
+							"value": "truck_owner",
+							"description": "يمكن أن تكون 'truck_owner' أو 'client'",
+							"type": "text"
+						},
+						{
+							"key": "fleet_owner_code",
+							"value": "FLEET-007",
+							"description": "(اختياري)",
+							"type": "text"
+						},
+						{
+							"key": "identity_image",
+							"description": "(اجباري لصاحب العربه)",
+							"type": "file",
+							"src": "/F:/muhammad/معلومات/photoes/ca069d763bc034c812b0407a0dd4e64c.png"
+						},
+						{
+							"key": "driving_license_image",
+							"description": "(اجباري لصحب العربه)",
+							"type": "file",
+							"src": "/F:/muhammad/معلومات/photoes/ca069d763bc034c812b0407a0dd4e64c.png"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"register"
+					]
+				},
+				"description": "الخطوة الأولى من التسجيل، تقوم بإرسال رمز التحقق (المحاكى حاليا)"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Verify OTP (Step 2)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"phone\": \"551264567\",\n    \"otp\": \"111111\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/verify-otp",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"verify-otp"
+					]
+				},
+				"description": "الخطوة الثانية، يتم إرسال رقم الهاتف مع الرمز لإنشاء الحساب"
+			},
+			"response": []
+		},
+		{
+			"name": "3. Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"phone\": \"551264567\",\n    \"password\": \"password123\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"login"
+					]
+				},
+				"description": "تسجيل الدخول للحصول على Access Token"
+			},
+			"response": []
+		},
+		{
+			"name": "4. Update Location (Auth Required)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"location\": \"Riyadh, King Fahd Road\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/update-location",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"update-location"
+					]
+				},
+				"description": "هذا الطلب يتطلب المصادقة. قم بنسخ التوكين من استجابة طلب تسجيل الدخول وضعه في متغير accessToken أو مباشرة في خانة التوكين."
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://127.0.0.1:8000"
+		},
+		{
+			"key": "accessToken",
+			"value": "YourLoginTokenHere"
+		}
+	]
+}
