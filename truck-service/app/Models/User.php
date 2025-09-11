@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // <-- الخطوة 1: قم باستيراد هذا
-
+use Spatie\Permission\Traits\HasRoles; // <-- استيراد
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable; // <-- الخطوة 2: قم بإضافة HasApiTokens هنا
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -47,4 +48,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+     public function trucks(): HasMany
+    {
+        // هذا السطر يخبر Laravel بأن المستخدم الواحد يمكن أن يمتلك العديد من الشاحنات
+        return $this->hasMany(Truck::class);
+    }
 }

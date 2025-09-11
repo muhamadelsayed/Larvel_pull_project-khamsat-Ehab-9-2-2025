@@ -25,20 +25,17 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
+            
+            // تم استبدال 'email' بـ 'phone'
+            'phone' => fake()->unique()->e164PhoneNumber(), // e164PhoneNumber يضمن تنسيقًا دوليًا فريدًا
+            
             'password' => static::$password ??= Hash::make('password'),
+            
+            // تحديد قيمة افتراضية لنوع الحساب
+            // يمكننا تغييره لاحقًا عند استخدام الـ Factory إذا أردنا
+            'account_type' => fake()->randomElement(['client', 'truck_owner']),
+            
             'remember_token' => Str::random(10),
         ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }

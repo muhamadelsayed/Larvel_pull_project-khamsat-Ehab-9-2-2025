@@ -1,191 +1,355 @@
 {
 	"info": {
-		"_postman_id": "d4fac8bd-ba64-420a-b093-6deac67f440d",
-		"name": "Truck Service API",
-		"description": "dev : mohammed\n\n[https://mostaql.com/u/abdelrahman_am/portfolio](https://mostaql.com/u/abdelrahman_am/portfolio)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "47184773",
-		"_collection_link": "https://cryosat-candidate-47295749-8524400.postman.co/workspace/muhammed--work~6634c685-e1c3-42de-94ea-1092d96b1dde/collection/47184773-d4fac8bd-ba64-420a-b093-6deac67f440d?action=share&source=collection_link&creator=47184773"
+		"_postman_id": "c1a1b1c1-d1e1-f1a1-b1c1-d1e1f1a1b1c1",
+		"name": "Truck Service API (by Mohammed)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "1. Register (Step 1)",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "name",
-							"value": "Test Truck Owner",
-							"type": "text"
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Register (with Firebase)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_FIREBASE_ID_TOKEN",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Test Truck Owner",
+									"type": "text"
+								},
+								{
+									"key": "phone",
+									"value": "+9665XXXXXXXX",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "password123",
+									"type": "text"
+								},
+								{
+									"key": "account_type",
+									"value": "truck_owner",
+									"type": "text"
+								},
+								{
+									"key": "identity_image",
+									"type": "file"
+								},
+								{
+									"key": "driving_license_image",
+									"type": "file"
+								}
+							]
 						},
-						{
-							"key": "phone",
-							"value": "551264567",
-							"type": "text"
-						},
-						{
-							"key": "password",
-							"value": "password123",
-							"type": "text"
-						},
-						{
-							"key": "account_type",
-							"value": "truck_owner",
-							"description": "يمكن أن تكون 'truck_owner' أو 'client'",
-							"type": "text"
-						},
-						{
-							"key": "fleet_owner_code",
-							"value": "FLEET-007",
-							"description": "(اختياري)",
-							"type": "text"
-						},
-						{
-							"key": "identity_image",
-							"description": "(اجباري لصاحب العربه)",
-							"type": "file",
-							"src": "/F:/muhammad/معلومات/photoes/ca069d763bc034c812b0407a0dd4e64c.png"
-						},
-						{
-							"key": "driving_license_image",
-							"description": "(اجباري لصحب العربه)",
-							"type": "file",
-							"src": "/F:/muhammad/معلومات/photoes/ca069d763bc034c812b0407a0dd4e64c.png"
+						"url": {
+							"raw": "{{baseUrl}}/api/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"register"
+							]
 						}
-					]
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{baseUrl}}/api/register",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"register"
-					]
-				},
-				"description": "الخطوة الأولى من التسجيل، تقوم بإرسال رمز التحقق (المحاكى حاليا)"
-			},
-			"response": []
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+9665XXXXXXXX\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "2. Verify OTP (Step 2)",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"phone\": \"551264567\",\n    \"otp\": \"111111\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Trucks Management (Owner)",
+			"item": [
+				{
+					"name": "1. Create Truck",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "category_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "sub_category_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "year_of_manufacture",
+									"value": "2023",
+									"type": "text"
+								},
+								{
+									"key": "size",
+									"value": "25 Ton",
+									"type": "text"
+								},
+								{
+									"key": "model",
+									"value": "Caterpillar 320D",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "A reliable excavator for heavy-duty tasks.",
+									"type": "text"
+								},
+								{
+									"key": "price_per_day",
+									"value": "1500",
+									"type": "text"
+								},
+								{
+									"key": "price_per_hour",
+									"value": "200",
+									"type": "text"
+								},
+								{
+									"key": "work_start_time",
+									"value": "08:00",
+									"type": "text"
+								},
+								{
+									"key": "work_end_time",
+									"value": "18:00",
+									"type": "text"
+								},
+								{
+									"key": "pickup_location",
+									"value": "Riyadh Industrial Area",
+									"type": "text"
+								},
+								{
+									"key": "delivery_available",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "delivery_price",
+									"value": "300",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file"
+								},
+								{
+									"key": "images[]",
+									"type": "file"
+								},
+								{
+									"key": "video",
+									"type": "file"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks"
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{baseUrl}}/api/verify-otp",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"verify-otp"
-					]
+				{
+					"name": "2. Update Truck",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "_method",
+									"value": "PATCH",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "price_per_day",
+									"value": "1600",
+									"type": "text",
+									"description": "تحديث السعر فقط"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"description": "إرسال صور جديدة سيستبدل كل الصور القديمة"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks",
+								"1"
+							],
+							"query": [
+								{
+									"key": "_method",
+									"value": "PATCH",
+									"disabled": true
+								}
+							]
+						},
+						"description": "ملاحظة: Laravel لا يدعم `multipart/form-data` مع `PATCH` مباشرة. لذلك، نرسل الطلب كـ `POST` ونضيف `_method=PATCH` في البودي أو الرابط. Postman يفعل هذا تلقائياً عند اختيار `form-data`."
+					},
+					"response": []
 				},
-				"description": "الخطوة الثانية، يتم إرسال رقم الهاتف مع الرمز لإنشاء الحساب"
-			},
-			"response": []
+				{
+					"name": "3. Delete Truck",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"name": "3. Login",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"phone\": \"551264567\",\n    \"password\": \"password123\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Public",
+			"item": [
+				{
+					"name": "Get Categories (with Sub-categories)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/categories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"categories"
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "{{baseUrl}}/api/login",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"login"
-					]
-				},
-				"description": "تسجيل الدخول للحصول على Access Token"
-			},
-			"response": []
-		},
-		{
-			"name": "4. Update Location (Auth Required)",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{accessToken}}",
-							"type": "string"
+				{
+					"name": "Get Single Truck Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks",
+								"1"
+							]
 						}
-					]
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"location\": \"Riyadh, King Fahd Road\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/update-location",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"api",
-						"update-location"
-					]
-				},
-				"description": "هذا الطلب يتطلب المصادقة. قم بنسخ التوكين من استجابة طلب تسجيل الدخول وضعه في متغير accessToken أو مباشرة في خانة التوكين."
-			},
-			"response": []
+					},
+					"response": []
+				}
+			]
 		}
 	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
 	"variable": [
 		{
 			"key": "baseUrl",
@@ -193,7 +357,7 @@
 		},
 		{
 			"key": "accessToken",
-			"value": "YourLoginTokenHere"
+			"value": ""
 		}
 	]
 }

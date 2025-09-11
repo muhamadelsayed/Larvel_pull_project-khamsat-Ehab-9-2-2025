@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('phone')->unique();
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('password');
-            $table->enum('account_type', ['truck_owner', 'client']);
+            $table->enum('account_type', ['truck_owner', 'client', 'manager', 'admin']);
             $table->string('fleet_owner_code')->nullable();
             $table->string('identity_image')->nullable();
             $table->string('driving_license_image')->nullable();
