@@ -12,21 +12,63 @@ use Illuminate\Http\Request;
  */
 class UserTrucksController extends Controller
 {
-     /**
-     * @OA\PathItem(
-     *      path="/api/users/{user}/trucks",
-     *      @OA\Get(
-     *          operationId="getUserTrucks",
-     *          tags={"User Profile"},
-     *          summary="Get a specific user's active trucks",
-     *          description="Requires authentication. Returns a list of a user's publicly active trucks.",
-     *          security={{"bearerAuth":{}}},
-     *          @OA\Parameter(name="user", in="path", required=true, description="ID of the user", @OA\Schema(type="integer")),
-     *          @OA\Response(response=200, description="Successful operation"),
-     *          @OA\Response(response=401, description="Unauthenticated"),
-     *      )
-     * )
-     */
+   /**
+ * @OA\Schema(
+ * schema="UserTruck",
+ * title="User Truck",
+ * description="Details of a truck owned by a user",
+ * required={"id", "user_id", "make", "model"},
+ * @OA\Property(
+ * property="id",
+ * type="integer",
+ * format="int64",
+ * description="The unique ID of the truck"
+ * ),
+ * @OA\Property(
+ * property="user_id",
+ * type="integer",
+ * format="int64",
+ * description="The ID of the user who owns the truck"
+ * ),
+ * @OA\Property(
+ * property="make",
+ * type="string",
+ * description="The truck's manufacturer"
+ * ),
+ * @OA\Property(
+ * property="model",
+ * type="string",
+ * description="The truck's model"
+ * ),
+ * @OA\Property(
+ * property="year",
+ * type="integer",
+ * description="The year the truck was made"
+ * ),
+ * @OA\Property(
+ * property="license_plate",
+ * type="string",
+ * description="The truck's license plate number"
+ * ),
+ * @OA\Property(
+ * property="is_active",
+ * type="boolean",
+ * description="Indicates if the truck is active and visible to others"
+ * ),
+ * @OA\Property(
+ * property="created_at",
+ * type="string",
+ * format="date-time",
+ * description="Timestamp when the truck record was created"
+ * ),
+ * @OA\Property(
+ * property="updated_at",
+ * type="string",
+ * format="date-time",
+ * description="Timestamp when the truck record was last updated"
+ * )
+ * )
+ */
     public function index(User $user)
     {
         // جلب الشاحنات النشطة فقط لهذا المستخدم مع تحميل العلاقات اللازمة

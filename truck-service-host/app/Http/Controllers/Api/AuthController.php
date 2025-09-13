@@ -18,23 +18,76 @@ use Exception; // <-- إضافة جديدة
  * @OA\Info(
  *      version="1.0.0",
  *      title="Truck Service API Documentation",
- *      description="Interactive API documentation for the Truck Service application.",
- *      @OA\Contact(
- *          email="masalim122006@gmail.com"
- *      )
+ *      description="Interactive API documentation for the Truck Service application. Developed by Mohammed Sleem.",
+ *      @OA\Contact(email="dev.mohammed@example.com")
+ * )
+ * @OA\Server(url=L5_SWAGGER_CONST_HOST, description="Main API Server")
+ * @OA\SecurityScheme(securityScheme="bearerAuth", type="http", scheme="bearer")
+ *
+ * @OA\Schema(
+ *     schema="SuccessMessage",
+ *     title="Success Message",
+ *     @OA\Property(property="message", type="string", example="Operation was successful.")
+ * )
+ * @OA\Schema(
+ *     schema="ValidationError",
+ *     title="Validation Error",
+ *     @OA\Property(property="message", type="string", example="The given data was invalid."),
+ *     @OA\Property(property="errors", type="object")
  * )
  *
- * @OA\Server(
- *      url=L5_SWAGGER_CONST_HOST,
- *      description="Main API Server"
+ * @OA\Schema(
+ *     schema="User",
+ *     title="User Model",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="name", type="string"),
+ *     @OA\Property(property="phone", type="string"),
+ *     @OA\Property(property="account_type", type="string", enum={"client", "truck_owner"})
  * )
- * 
- * @OA\SecurityScheme(
- *     securityScheme="bearerAuth",
- *     type="http",
- *     scheme="bearer"
+ *
+ * @OA\Schema(
+ *     schema="TruckResource",
+ *     title="Truck Resource",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="status", type="string", enum={"pending", "active", "inactive"}),
+ *     @OA\Property(property="model", type="string"),
+ *     @OA\Property(property="year_of_manufacture", type="string"),
+ *     @OA\Property(property="description", type="string"),
+ *     @OA\Property(property="price_per_day", type="string", format="decimal"),
+ *     @OA\Property(property="price_per_hour", type="string", format="decimal"),
+ *     @OA\Property(property="work_hours", type="string", example="08:00:00 - 18:00:00"),
+ *     @OA\Property(property="pickup_location", type="string"),
+ *     @OA\Property(property="delivery_price", type="string", format="decimal"),
+ *     @OA\Property(property="owner", type="object", ref="#/components/schemas/User"),
+ *     @OA\Property(property="category", type="string"),
+ *     @OA\Property(property="sub_category", type="string"),
+ *     @OA\Property(property="images", type="array", @OA\Items(type="string", format="url")),
+ *     @OA\Property(property="video", type="string", format="url")
  * )
- * 
+ *
+ * @OA\Schema(
+ *     schema="MyTruckResource",
+ *     title="My Truck Resource",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="model", type="string"),
+ *     @OA\Property(property="status", type="string", enum={"pending", "active", "inactive"}),
+ *     @OA\Property(property="price_per_day", type="string", format="decimal"),
+ *     @OA\Property(property="category", type="string"),
+ *     @OA\Property(property="main_image", type="string", format="url"),
+ *     @OA\Property(property="created_at", type="string", format="date-time")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="BookingResource",
+ *     title="Booking Resource",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="status", type="string"),
+ *     @OA\Property(property="start_datetime", type="string", format="date-time"),
+ *     @OA\Property(property="end_datetime", type="string", format="date-time"),
+ *     @OA\Property(property="total_price", type="string", format="decimal"),
+ *     @OA\Property(property="truck", type="object", ref="#/components/schemas/MyTruckResource"),
+ *     @OA\Property(property="other_party", type="object")
+ * )
  * @group Authentication
  * APIs for managing user authentication.
  */
@@ -48,7 +101,8 @@ class AuthController extends Controller
      *          operationId="registerUser",
      *          tags={"Authentication"},
      *          summary="Register a new user",
-     *          description="Creates a new user account after successful validation of a Firebase ID token. The Firebase token must be sent in the Authorization header as a Bearer token.",
+     *          description="Creates a new user account after validating a Firebase ID token (sent as Bearer in the Authorization header).",
+     *          security={{"bearerAuth": {}}},
      *          @OA\RequestBody(
      *              required=true,
      *              @OA\MediaType(
@@ -59,14 +113,40 @@ class AuthController extends Controller
      *                      @OA\Property(property="phone", type="string", example="+966512345678"),
      *                      @OA\Property(property="password", type="string", format="password", example="password123"),
      *                      @OA\Property(property="account_type", type="string", enum={"client", "truck_owner"}, example="truck_owner"),
-     *                      @OA\Property(property="identity_image", type="string", format="binary"),
-     *                      @OA\Property(property="driving_license_image", type="string", format="binary"),
+     *                      @OA\Property(property="identity_image", type="string", format="binary", description="Required if account_type is truck_owner"),
+     *                      @OA\Property(property="driving_license_image", type="string", format="binary", description="Required if account_type is truck_owner")
      *                  )
      *              )
      *          ),
-     *          @OA\Response(response=201, description="Successful registration"),
-     *          @OA\Response(response=401, description="Invalid Firebase Token"),
-     *          @OA\Response(response=422, description="Validation Error")
+     *          @OA\Response(
+     *              response=201,
+     *              description="Successful registration",
+     *              @OA\JsonContent(
+     *                  @OA\Property(property="message", type="string", example="User registered successfully."),
+     *                  @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                  @OA\Property(property="token_type", type="string", example="Bearer"),
+     *                  @OA\Property(property="user", ref="#/components/schemas/User")
+     *              )
+     *          ),
+     *          @OA\Response(
+     *              response=401,
+     *              description="Invalid or missing Firebase token",
+     *              @OA\JsonContent(
+     *                  @OA\Property(property="message", type="string", example="Firebase ID Token is missing.")
+     *              )
+     *          ),
+     *          @OA\Response(
+     *              response=403,
+     *              description="Phone number mismatch",
+     *              @OA\JsonContent(
+     *                  @OA\Property(property="message", type="string", example="Phone number does not match the verified token.")
+     *              )
+     *          ),
+     *          @OA\Response(
+     *              response=422,
+     *              description="Validation Error",
+     *              @OA\JsonContent(ref="#/components/schemas/ValidationError")
+     *          )
      *      )
      * )
      */
@@ -147,8 +227,31 @@ class AuthController extends Controller
      *                  @OA\Property(property="password", type="string", format="password", example="password123"),
      *              )
      *          ),
-     *          @OA\Response(response=200, description="Successful login"),
-     *          @OA\Response(response=401, description="Unauthorized")
+    *          @OA\Response(
+    *              response=200,
+    *              description="Login successful",
+    *              @OA\JsonContent(
+    *                  @OA\Property(property="message", type="string", example="Login successful"),
+    *                  @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+    *                  @OA\Property(property="token_type", type="string", example="Bearer"),
+    *                  @OA\Property(property="user", ref="#/components/schemas/User")
+    *              )
+    *          ),
+    *          @OA\Response(
+    *              response=401,
+    *              description="Unauthorized",
+    *              @OA\JsonContent(
+    *                  @OA\Property(property="error", type="string", example="The provided credentials do not match our records.")
+    *              )
+    *          ),
+    *          @OA\Response(
+    *              response=422,
+    *              description="Validation Error",
+    *              @OA\JsonContent(
+    *                  @OA\Property(property="phone", type="array", @OA\Items(type="string", example="The phone field is required.")),
+    *                  @OA\Property(property="password", type="array", @OA\Items(type="string", example="The password field is required."))
+    *              )
+    *          )
      *      )
      * )
      */
@@ -194,8 +297,20 @@ class AuthController extends Controller
      *                  @OA\Property(property="location", type="string", example="Riyadh, Saudi Arabia"),
      *              )
      *          ),
-     *          @OA\Response(response=200, description="Location updated successfully"),
-     *          @OA\Response(response=422, description="Validation Error")
+    *          @OA\Response(
+    *              response=200,
+    *              description="Location updated successfully",
+    *              @OA\JsonContent(
+    *                  @OA\Property(property="message", type="string", example="Location updated successfully")
+    *              )
+    *          ),
+    *          @OA\Response(
+    *              response=422,
+    *              description="Validation Error",
+    *              @OA\JsonContent(
+    *                  @OA\Property(property="location", type="array", @OA\Items(type="string", example="The location field is required."))
+    *              )
+    *          )
      *      )
      * )
      */
@@ -231,8 +346,21 @@ class AuthController extends Controller
      *                  @OA\Property(property="phone", type="string", example="+966512345678")
      *              )
      *          ),
-     *          @OA\Response(response=200, description="OTP for password reset has been sent."),
-     *          @OA\Response(response=422, description="Validation Error")
+    *          @OA\Response(
+    *              response=200,
+    *              description="OTP for password reset has been sent.",
+    *              @OA\JsonContent(
+    *                  @OA\Property(property="message", type="string", example="OTP for password reset has been sent."),
+    *                  @OA\Property(property="phone", type="string", example="+966512345678")
+    *              )
+    *          ),
+    *          @OA\Response(
+    *              response=422,
+    *              description="Validation Error",
+    *              @OA\JsonContent(
+    *                  @OA\Property(property="phone", type="array", @OA\Items(type="string", example="The phone field is required."))
+    *              )
+    *          )
      *      )
      * )
      */

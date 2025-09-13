@@ -12,21 +12,31 @@ use App\Models\Category;
 class CategoryController extends Controller
 {
 
-    /**
-     * @OA\PathItem(
-     *      path="/api/categories",
-     *      @OA\Get(
-     *          operationId="getCategories",
-     *          tags={"Public Data"},
-     *          summary="Get all categories with their sub-categories",
-     *          description="Returns a list of main categories, each containing its sub-categories.",
-     *          @OA\Response(
-     *              response=200,
-     *              description="Successful operation"
-     *          )
-     *      )
-     * )
-     */
+/**
+ * @OA\Schema(
+ * schema="SubCategory",
+ * title="SubCategory",
+ * description="A sub-category object",
+ * required={"id", "name"},
+ * @OA\Property(
+ * property="id",
+ * type="integer",
+ * format="int64",
+ * description="The unique ID of the sub-category"
+ * ),
+ * @OA\Property(
+ * property="name",
+ * type="string",
+ * description="The name of the sub-category"
+ * ),
+ * @OA\Property(
+ * property="category_id",
+ * type="integer",
+ * format="int64",
+ * description="The ID of the parent category"
+ * )
+ * )
+ */
     public function index()
     {
         $categories = Category::with('subCategories')->latest()->get();

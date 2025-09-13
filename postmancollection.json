@@ -1,24 +1,23 @@
 {
 	"info": {
-		"_postman_id": "9530b93f-e1e8-43c5-87d5-3ae63b22bd63",
-		"name": "Truck Service API (by Mohammed)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "47184773",
-		"_collection_link": "https://cryosat-candidate-47295749-8524400.postman.co/workspace/muhammed--work~6634c685-e1c3-42de-94ea-1092d96b1dde/collection/47184773-9530b93f-e1e8-43c5-87d5-3ae63b22bd63?action=share&source=collection_link&creator=47184773"
+		"_postman_id": "a1b2c3d4-e5f6-a1b2-c3d4-e5f6a1b2c3d4",
+		"name": "Truck Service API - Mohammed Sleem",
+		"description": "Complete API collection for the Truck Service application.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "Auth",
+			"name": "1. Authentication",
 			"item": [
 				{
-					"name": "Register (with Firebase)",
+					"name": "Register (via Firebase)",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
 								"key": "Authorization",
 								"value": "Bearer YOUR_FIREBASE_ID_TOKEN",
-								"type": "text"
+								"description": "The ID Token received from Firebase after phone verification."
 							}
 						],
 						"body": {
@@ -26,12 +25,12 @@
 							"formdata": [
 								{
 									"key": "name",
-									"value": "Test Truck Owner",
+									"value": "Test Owner",
 									"type": "text"
 								},
 								{
 									"key": "phone",
-									"value": "+9665XXXXXXXX",
+									"value": "+966512345678",
 									"type": "text"
 								},
 								{
@@ -42,17 +41,16 @@
 								{
 									"key": "account_type",
 									"value": "truck_owner",
-									"type": "text"
+									"type": "text",
+									"description": "Can be 'client' or 'truck_owner'"
 								},
 								{
 									"key": "identity_image",
-									"type": "file",
-									"src": []
+									"type": "file"
 								},
 								{
 									"key": "driving_license_image",
-									"type": "file",
-									"src": []
+									"type": "file"
 								}
 							]
 						},
@@ -76,7 +74,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"phone\": \"+9665XXXXXXXX\",\n    \"password\": \"password123\"\n}",
+							"raw": "{\n    \"phone\": \"+966512345678\",\n    \"password\": \"password123\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -99,217 +97,10 @@
 			]
 		},
 		{
-			"name": "Trucks Management (Owner)",
+			"name": "2. Public Data",
 			"item": [
 				{
-					"name": "1. Create Truck",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "category_id",
-									"value": "1",
-									"type": "text"
-								},
-								{
-									"key": "sub_category_id",
-									"value": "1",
-									"type": "text"
-								},
-								{
-									"key": "year_of_manufacture",
-									"value": "2023",
-									"type": "text"
-								},
-								{
-									"key": "size",
-									"value": "25 Ton",
-									"type": "text"
-								},
-								{
-									"key": "model",
-									"value": "Caterpillar 320D",
-									"type": "text"
-								},
-								{
-									"key": "description",
-									"value": "A reliable excavator for heavy-duty tasks.",
-									"type": "text"
-								},
-								{
-									"key": "price_per_day",
-									"value": "1500",
-									"type": "text"
-								},
-								{
-									"key": "price_per_hour",
-									"value": "200",
-									"type": "text"
-								},
-								{
-									"key": "work_start_time",
-									"value": "08:00",
-									"type": "text"
-								},
-								{
-									"key": "work_end_time",
-									"value": "18:00",
-									"type": "text"
-								},
-								{
-									"key": "pickup_location",
-									"value": "Riyadh Industrial Area",
-									"type": "text"
-								},
-								{
-									"key": "delivery_available",
-									"value": "1",
-									"type": "text"
-								},
-								{
-									"key": "delivery_price",
-									"value": "300",
-									"type": "text"
-								},
-								{
-									"key": "images[]",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "images[]",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "video",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/trucks",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"trucks"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "2. Update Truck",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "_method",
-									"value": "PATCH",
-									"type": "text",
-									"disabled": true
-								},
-								{
-									"key": "price_per_day",
-									"value": "1600",
-									"description": "تحديث السعر فقط",
-									"type": "text"
-								},
-								{
-									"key": "images[]",
-									"description": "إرسال صور جديدة سيستبدل كل الصور القديمة",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/trucks/1",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"trucks",
-								"1"
-							],
-							"query": [
-								{
-									"key": "_method",
-									"value": "PATCH",
-									"disabled": true
-								}
-							]
-						},
-						"description": "ملاحظة: Laravel لا يدعم `multipart/form-data` مع `PATCH` مباشرة. لذلك، نرسل الطلب كـ `POST` ونضيف `_method=PATCH` في البودي أو الرابط. Postman يفعل هذا تلقائياً عند اختيار `form-data`."
-					},
-					"response": []
-				},
-				{
-					"name": "3. Delete Truck",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{accessToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseUrl}}/api/trucks/1",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"api",
-								"trucks",
-								"1"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Public",
-			"item": [
-				{
-					"name": "Get Categories (with Sub-categories)",
+					"name": "Get All Categories",
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -344,24 +135,235 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Truck Calendar (Booked Dates)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks/1/calendar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks",
+								"1",
+								"calendar"
+							]
+						}
+					},
+					"response": []
 				}
 			]
+		},
+		{
+			"name": "3. Authenticated User Actions",
+			"item": [
+				{
+					"name": "Get Another User's Trucks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/2/trucks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"2",
+								"trucks"
+							]
+						},
+						"description": "Gets all *active* trucks for a specific user ID."
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{accessToken}}",
+						"type": "string"
+					}
+				]
+			}
+		},
+		{
+			"name": "4. Truck Owner Actions",
+			"item": [
+				{
+					"name": "Create Truck",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "category_id", "value": "1", "type": "text"},
+								{"key": "sub_category_id", "value": "1", "type": "text"},
+								{"key": "year_of_manufacture", "value": "2024", "type": "text"},
+								{"key": "size", "value": "30 Ton", "type": "text"},
+								{"key": "model", "value": "Komatsu PC200", "type": "text"},
+								{"key": "description", "value": "Brand new model with latest features.", "type": "text"},
+								{"key": "price_per_day", "value": "1800", "type": "text"},
+								{"key": "price_per_hour", "value": "250", "type": "text"},
+								{"key": "work_start_time", "value": "07:00", "type": "text"},
+								{"key": "work_end_time", "value": "19:00", "type": "text"},
+								{"key": "pickup_location", "value": "Dammam Port", "type": "text"},
+								{"key": "delivery_available", "value": "1", "type": "text"},
+								{"key": "delivery_price", "value": "400", "type": "text"},
+								{"key": "images[]", "type": "file"},
+								{"key": "video", "type": "file"}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trucks"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Truck",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{"key": "_method", "value": "PATCH", "type": "text", "description": "Required when sending files with PATCH method."},
+								{"key": "price_per_day", "value": "1950", "type": "text", "description": "Example: updating only the price."},
+								{"key": "description", "value": "Updated description with new details.", "type": "text"}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trucks", "1"]
+						},
+						"description": "To send files (images/video), send as POST and add a `_method` field with value `PATCH`."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Truck",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trucks", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List My Trucks (with Filters)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/my-trucks?status=pending&sort_by=latest",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "my-trucks"],
+							"query": [
+								{"key": "status", "value": "pending", "description": "(Optional) Filter by status: pending, active, inactive"},
+								{"key": "sort_by", "value": "latest", "description": "(Optional) Sort by: latest, oldest"},
+								{"key": "page", "value": null, "disabled": true}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+			}
+		},
+		{
+			"name": "5. Booking Actions",
+			"item": [
+				{
+					"name": "Create Booking Request (Customer)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"truck_id\": 1,\n    \"start_datetime\": \"2025-10-25 09:00:00\",\n    \"end_datetime\": \"2025-10-27 17:00:00\",\n    \"days\": 3,\n    \"hours\": 0,\n    \"needs_delivery\": true\n}",
+							"options": {"raw": {"language": "json"}}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/bookings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "bookings"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List My Bookings (Incoming/Outgoing)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/my-bookings?type=incoming&status=pending",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "my-bookings"],
+							"query": [
+								{"key": "type", "value": "incoming", "description": "(Optional) Filter by type: incoming (requests on my trucks), outgoing (my requests)"},
+								{"key": "status", "value": "pending", "description": "(Optional) Filter by status"}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Approve Booking (Truck Owner)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/my-bookings/1/approve",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "my-bookings", "1", "approve"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Booking (Truck Owner)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/my-bookings/1/reject",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "my-bookings", "1", "reject"]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+			}
 		}
 	],
-	"auth": {
-		"type": "bearer",
-		"bearer": [
-			{
-				"key": "token",
-				"value": "{{accessToken}}",
-				"type": "string"
-			}
-		]
-	},
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "https://bull-station.com"
+			"value": "http://127.0.0.1:8000"
 		},
 		{
 			"key": "accessToken",

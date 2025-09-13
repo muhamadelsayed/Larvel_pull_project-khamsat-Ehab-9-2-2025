@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -7,7 +6,7 @@ use App\Models\Booking;
 use App\Models\Truck;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Http\Resources\BookingResource; // <-- إضافة
+use App\Http\Resources\BookingResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 
@@ -19,92 +18,154 @@ use Illuminate\Validation\Rule;
 class BookingController extends Controller
 {
     use AuthorizesRequests;
-     /**
-     * @OA\PathItem(
+
+    /**
+     * @OA\Get(
      *      path="/api/my-bookings",
-     *      @OA\Get(
-     *          operationId="getMyBookings",
-     *          tags={"Booking Management"},
-     *          summary="Get the authenticated user's bookings",
-     *          security={{"bearerAuth":{}}},
-     *          @OA\Parameter(name="status", in="query", @OA\Schema(type="string", enum={"pending", "approved", "confirmed", "rejected", "cancelled", "completed"})),
-     *          @OA\Parameter(name="type", in="query", @OA\Schema(type="string", enum={"incoming", "outgoing"})),
-     *          @OA\Response(response=200, description="Successful operation"),
+     *      operationId="getMyBookings",
+     *      tags={"Booking Management"},
+     *      summary="Get the authenticated user's bookings",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\Parameter(name="status", in="query", @OA\Schema(type="string", enum={"pending", "approved", "confirmed", "rejected", "cancelled", "completed"})),
+     *      @OA\Parameter(name="type", in="query", @OA\Schema(type="string", enum={"incoming", "outgoing"})),
+     *      @OA\Response(
+     *          response=200,
+     *          description="List of bookings for the authenticated user",
+     *          @OA\JsonContent(
+     *              type="object",
+     *              @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/BookingResource")),
+     *              @OA\Property(property="links", type="object", example={"first": "url", "last": "url", "prev": null, "next": "url"}),
+     *              @OA\Property(property="meta", type="object", example={"current_page": 1, "from": 1, "last_page": 10, "path": "url", "per_page": 15, "to": 15, "total": 150})
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=401,
+     *          description="Unauthenticated",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Unauthenticated.")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=422,
+     *          description="Validation error",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *              @OA\Property(property="errors", type="object", example={"status": {"The selected status is invalid."}})
+     *          )
      *      )
      * )
      */
-public function index(Request $request)
-{
-    $user = auth()->user();
+    public function index(Request $request)
+    {
+        $user = auth()->user();
 
-    // 1. التحقق من صحة الفلاتر
-    $request->validate([
-        'status' => ['nullable', Rule::in(['pending', 'approved', 'confirmed', 'rejected', 'cancelled', 'completed'])],
-        'type' => ['nullable', Rule::in(['incoming', 'outgoing'])], // incoming: طلبات على شاحناتي, outgoing: حجوزاتي
-    ]);
+        $request->validate([
+            'status' => ['nullable', Rule::in(['pending', 'approved', 'confirmed', 'rejected', 'cancelled', 'completed'])],
+            'type' => ['nullable', Rule::in(['incoming', 'outgoing'])],
+        ]);
 
-    // 2. بناء الاستعلام الأساسي
-    $bookingsQuery = Booking::query()
-        ->with(['truck.images', 'customer', 'truck.user'])
-        ->latest();
+        $bookingsQuery = Booking::query()
+            ->with(['truck.images', 'customer', 'truck.user'])
+            ->latest();
 
-    // 3. تطبيق فلتر النوع (وارد أم صادر)
-    $type = $request->input('type');
+        $type = $request->input('type');
 
-    if ($type === 'incoming') {
-        // جلب الحجوزات على الشاحنات التي يملكها المستخدم فقط
-        $bookingsQuery->whereHas('truck', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        });
-    } elseif ($type === 'outgoing') {
-        // جلب الحجوزات التي قام بها المستخدم كعميل فقط
-        $bookingsQuery->where('customer_id', $user->id);
-    } else {
-        // إذا لم يتم تحديد النوع، جلب كليهما
-        $bookingsQuery->where(function ($query) use ($user) {
-            $query->where('customer_id', $user->id)
-                ->orWhereHas('truck', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                });
-        });
+        if ($type === 'incoming') {
+            $bookingsQuery->whereHas('truck', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            });
+        } elseif ($type === 'outgoing') {
+            $bookingsQuery->where('customer_id', $user->id);
+        } else {
+            $bookingsQuery->where(function ($query) use ($user) {
+                $query->where('customer_id', $user->id)
+                    ->orWhereHas('truck', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    });
+            });
+        }
+
+        if ($request->filled('status')) {
+            $bookingsQuery->where('status', $request->status);
+        }
+
+        return BookingResource::collection($bookingsQuery->paginate(15));
     }
 
-    // 4. تطبيق فلتر الحالة إذا تم إرساله
-    if ($request->filled('status')) {
-        $bookingsQuery->where('status', $request->status);
-    }
-    
-    // 5. إرجاع النتائج مع pagination
-    return BookingResource::collection($bookingsQuery->paginate(15));
-}
     /**
-     * @OA\PathItem(
+     * @OA\Post(
      *      path="/api/bookings",
-     *      @OA\Post(
-     *          operationId="storeBooking",
-     *          tags={"Booking Management"},
-     *          summary="Create a new booking request",
-     *          security={{"bearerAuth":{}}},
-     *          @OA\RequestBody(
-     *              required=true,
-     *              @OA\JsonContent(
-     *                  required={"truck_id", "start_datetime", "end_datetime", "days", "hours", "needs_delivery"},
-     *                  @OA\Property(property="truck_id", type="integer"),
-     *                  @OA\Property(property="start_datetime", type="string", format="date-time", example="2025-10-20 08:00:00"),
-     *                  @OA\Property(property="end_datetime", type="string", format="date-time", example="2025-10-22 17:00:00"),
-     *                  @OA\Property(property="days", type="integer", example="2"),
-     *                  @OA\Property(property="hours", type="integer", example="9"),
-     *                  @OA\Property(property="needs_delivery", type="boolean", example="true"),
-     *              )
-     *          ),
-     *          @OA\Response(response=201, description="Booking request sent successfully"),
-     *          @OA\Response(response=409, description="Conflict, truck not available"),
-     *      )
+     *      operationId="storeBooking",
+     *      tags={"Booking Management"},
+     *      summary="Create a new booking request",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(
+     *              required={"truck_id", "start_datetime", "end_datetime", "days", "hours", "needs_delivery"},
+     *              @OA\Property(property="truck_id", type="integer"),
+     *              @OA\Property(property="start_datetime", type="string", format="date-time", example="2025-10-20 08:00:00"),
+     *              @OA\Property(property="end_datetime", type="string", format="date-time", example="2025-10-22 17:00:00"),
+     *              @OA\Property(property="days", type="integer", example="2"),
+     *              @OA\Property(property="hours", type="integer", example="9"),
+     *              @OA\Property(property="needs_delivery", type="boolean", example="true"),
+     *          )
+     *      ),
+    *      @OA\Response(
+    *          response=201,
+    *          description="Booking request sent successfully",
+    *          @OA\JsonContent(
+    *              type="object",
+    *              @OA\Property(property="message", type="string", example="Booking request sent successfully. Awaiting owner approval."),
+    *              @OA\Property(property="booking_id", type="integer", example=123),
+    *              @OA\Property(
+    *                  property="booking_details",
+    *                  type="object",
+    *                  @OA\Property(property="total_price", type="number", format="float", example=350.5),
+    *                  @OA\Property(property="status", type="string", example="pending")
+    *              )
+    *          )
+    *      ),
+    *      @OA\Response(
+    *          response=409,
+    *          description="Conflict, truck not available",
+    *          @OA\JsonContent(
+    *              type="object",
+    *              @OA\Property(property="message", type="string", example="Sorry, this truck is no longer available for the selected dates.")
+    *          )
+    *      ),
+    *      @OA\Response(
+    *          response=401,
+    *          description="Unauthenticated",
+    *          @OA\JsonContent(
+    *              type="object",
+    *              @OA\Property(property="message", type="string", example="Unauthenticated.")
+    *          )
+    *      ),
+    *      @OA\Response(
+    *          response=422,
+    *          description="Validation error",
+    *          @OA\JsonContent(
+    *              type="object",
+    *              @OA\Property(property="message", type="string", example="The given data was invalid."),
+    *              @OA\Property(
+    *                  property="errors",
+    *                  type="object",
+    *                  example={
+    *                      "truck_id": {"The selected truck id is invalid."},
+    *                      "start_datetime": {"The start datetime is not a valid date."},
+    *                      "end_datetime": {"The end datetime must be a date after or equal to start datetime."},
+    *                      "days": {"The days must be at least 0."},
+    *                      "hours": {"The hours must be at least 0."},
+    *                      "needs_delivery": {"The needs delivery field must be true or false."}
+    *                  }
+    *              )
+    *          )
+    *      ),
      * )
      */
     public function store(Request $request)
     {
-        // 1. التحقق من صحة المدخلات
         $validated = $request->validate([
             'truck_id' => 'required|exists:trucks,id',
             'start_datetime' => 'required|date|after_or_equal:today',
@@ -117,36 +178,31 @@ public function index(Request $request)
         $truck = Truck::findOrFail($validated['truck_id']);
         $start = Carbon::parse($validated['start_datetime']);
         $end = Carbon::parse($validated['end_datetime']);
-        
-        // 2. التحقق من التوفر (لا يزال ضروريًا كطبقة أمان أخيرة)
+
         $isBooked = $truck->bookings()
-            ->whereIn('status', ['confirmed', 'approved']) // التحقق من الحجوزات المؤكدة أو التي بانتظار الدفع
+            ->whereIn('status', ['confirmed', 'approved'])
             ->where(function ($query) use ($start, $end) {
                 $query->where(fn($q) => $q->where('start_datetime', '<', $end)->where('end_datetime', '>', $start));
             })->exists();
 
         if ($isBooked) {
-            return response()->json(['message' => 'Sorry, this truck is no longer available for the selected dates.'], 409); // 409 Conflict
+            return response()->json(['message' => 'Sorry, this truck is no longer available for the selected dates.'], 409);
         }
 
-        // 3. حساب السعر بدقة بناءً على البيانات المرسلة
         $basePrice = ($validated['days'] * $truck->price_per_day) + ($validated['hours'] * $truck->price_per_hour);
         $deliveryPrice = ($validated['needs_delivery'] && $truck->delivery_available) ? $truck->delivery_price : 0;
         $totalPrice = $basePrice + $deliveryPrice;
 
-        // 4. إنشاء سجل الحجز في قاعدة البيانات
         $booking = Booking::create([
             'truck_id' => $truck->id,
-            'customer_id' => auth()->id(), // المستخدم الحالي هو العميل
+            'customer_id' => auth()->id(),
             'start_datetime' => $start,
             'end_datetime' => $end,
             'base_price' => $basePrice,
             'delivery_price' => $deliveryPrice,
             'total_price' => $totalPrice,
-            'status' => 'pending', // الحالة الافتراضية هي "قيد المراجعة"
+            'status' => 'pending',
         ]);
-
-        // (مستقبلاً، هنا يتم إرسال إشعار لصاحب الشاحنة)
 
         return response()->json([
             'message' => 'Booking request sent successfully. Awaiting owner approval.',
@@ -155,31 +211,39 @@ public function index(Request $request)
                 'total_price' => $totalPrice,
                 'status' => 'pending',
             ]
-        ], 201); // 201 Created
+        ], 201);
     }
-      /**
-     * @OA\PathItem(
+
+    /**
+     * @OA\Post(
      *      path="/api/my-bookings/{booking}/approve",
-     *      @OA\Post(
-     *          operationId="approveBooking",
-     *          tags={"Booking Management"},
-     *          summary="Approve a booking request (Truck Owner)",
-     *          security={{"bearerAuth":{}}},
-     *          @OA\Parameter(name="booking", in="path", required=true, @OA\Schema(type="integer")),
-     *          @OA\Response(response=200, description="Booking approved"),
-     *          @OA\Response(response=403, description="Forbidden"),
-     *      )
+     *      operationId="approveBooking",
+     *      tags={"Booking Management"},
+     *      summary="Approve a booking request (Truck Owner)",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\Parameter(name="booking", in="path", required=true, @OA\Schema(type="integer")),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Booking has been approved. Awaiting payment.",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Booking has been approved. Awaiting payment."),
+     *              @OA\Property(property="booking", ref="#/components/schemas/BookingResource")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="This action is unauthorized.")
+     *          )
+     *      ),
      * )
      */
     public function approve(Booking $booking)
     {
-        // التحقق من الصلاحية باستخدام الـ Policy
         $this->authorize('approve', $booking);
-        
-        // تحديث حالة الحجز
-        $booking->update(['status' => 'approved']);
 
-        // (مستقبلاً، هنا يتم إرسال إشعار للعميل)
+        $booking->update(['status' => 'approved']);
 
         return response()->json([
             'message' => 'Booking has been approved. Awaiting payment.',
@@ -187,28 +251,36 @@ public function index(Request $request)
         ]);
     }
 
-     /**
-     * @OA\PathItem(
+    /**
+     * @OA\Post(
      *      path="/api/my-bookings/{booking}/reject",
-     *      @OA\Post(
-     *          operationId="rejectBooking",
-     *          tags={"Booking Management"},
-     *          summary="Reject a booking request (Truck Owner)",
-     *          security={{"bearerAuth":{}}},
-     *          @OA\Parameter(name="booking", in="path", required=true, @OA\Schema(type="integer")),
-     *          @OA\Response(response=200, description="Booking rejected"),
-     *          @OA\Response(response=403, description="Forbidden"),
-     *      )
+     *      operationId="rejectBooking",
+     *      tags={"Booking Management"},
+     *      summary="Reject a booking request (Truck Owner)",
+     *      security={{"bearerAuth":{}}},
+     *      @OA\Parameter(name="booking", in="path", required=true, @OA\Schema(type="integer")),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Booking has been rejected.",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="Booking has been rejected."),
+     *              @OA\Property(property="booking", ref="#/components/schemas/BookingResource")
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=403,
+     *          description="Forbidden",
+     *          @OA\JsonContent(
+     *              @OA\Property(property="message", type="string", example="This action is unauthorized.")
+     *          )
+     *      ),
      * )
      */
     public function reject(Booking $booking)
     {
-        // التحقق من الصلاحية باستخدام الـ Policy
         $this->authorize('reject', $booking);
 
         $booking->update(['status' => 'rejected']);
-
-        // (مستقبلاً، هنا يتم إرسال إشعار للعميل)
 
         return response()->json([
             'message' => 'Booking has been rejected.',

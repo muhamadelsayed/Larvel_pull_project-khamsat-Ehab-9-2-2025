@@ -26,11 +26,36 @@ class MyTrucksController extends Controller
      *          @OA\Parameter(name="status", in="query", @OA\Schema(type="string", enum={"pending", "active", "inactive"})),
      *          @OA\Parameter(name="sort_by", in="query", @OA\Schema(type="string", enum={"latest", "oldest"})),
      *          @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
-     *          @OA\Response(response=200, description="Successful operation"),
-     *          @OA\Response(response=401, description="Unauthenticated"),
-     *      )
-     * )
-     */
+    *          @OA\Response(
+    *              response=200,
+    *              description="Successful operation",
+    *              @OA\JsonContent(
+    *                  type="object",
+    *                  @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/MyTruckResource")),
+    *                  @OA\Property(property="links", type="object"),
+    *                  @OA\Property(property="meta", type="object")
+    *              )
+    *          ),
+    *          @OA\Response(
+    *              response=401,
+    *              description="Unauthenticated",
+    *              @OA\JsonContent(
+    *                  type="object",
+    *                  @OA\Property(property="message", type="string", example="Unauthenticated.")
+    *              )
+    *          ),
+    *          @OA\Response(
+    *              response=422,
+    *              description="Validation Error",
+    *              @OA\JsonContent(
+    *                  type="object",
+    *                  @OA\Property(property="message", type="string", example="The given data was invalid."),
+    *                  @OA\Property(property="errors", type="object")
+    *              )
+    *          )
+    *      )
+    * )
+        */
     public function index(Request $request)
     {
         // 1. التحقق من صحة الفلاتر المرسلة (اختياري)
