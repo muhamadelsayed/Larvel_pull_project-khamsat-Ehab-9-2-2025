@@ -1,8 +1,10 @@
 {
 	"info": {
-		"_postman_id": "c1a1b1c1-d1e1-f1a1-b1c1-d1e1f1a1b1c1",
+		"_postman_id": "9530b93f-e1e8-43c5-87d5-3ae63b22bd63",
 		"name": "Truck Service API (by Mohammed)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47184773",
+		"_collection_link": "https://cryosat-candidate-47295749-8524400.postman.co/workspace/muhammed--work~6634c685-e1c3-42de-94ea-1092d96b1dde/collection/47184773-9530b93f-e1e8-43c5-87d5-3ae63b22bd63?action=share&source=collection_link&creator=47184773"
 	},
 	"item": [
 		{
@@ -44,11 +46,13 @@
 								},
 								{
 									"key": "identity_image",
-									"type": "file"
+									"type": "file",
+									"src": []
 								},
 								{
 									"key": "driving_license_image",
-									"type": "file"
+									"type": "file",
+									"src": []
 								}
 							]
 						},
@@ -182,15 +186,18 @@
 								},
 								{
 									"key": "images[]",
-									"type": "file"
+									"type": "file",
+									"src": []
 								},
 								{
 									"key": "images[]",
-									"type": "file"
+									"type": "file",
+									"src": []
 								},
 								{
 									"key": "video",
-									"type": "file"
+									"type": "file",
+									"src": []
 								}
 							]
 						},
@@ -234,13 +241,14 @@
 								{
 									"key": "price_per_day",
 									"value": "1600",
-									"type": "text",
-									"description": "تحديث السعر فقط"
+									"description": "تحديث السعر فقط",
+									"type": "text"
 								},
 								{
 									"key": "images[]",
+									"description": "إرسال صور جديدة سيستبدل كل الصور القديمة",
 									"type": "file",
-									"description": "إرسال صور جديدة سيستبدل كل الصور القديمة"
+									"src": []
 								}
 							]
 						},
@@ -353,7 +361,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://127.0.0.1:8000"
+			"value": "https://bull-station.com"
 		},
 		{
 			"key": "accessToken",

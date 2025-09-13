@@ -1,0 +1,826 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Truck Service API Documentation",
+        "description": "Interactive API documentation for the Truck Service application.",
+        "contact": {
+            "email": "masalim122006@gmail.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "Main API Server"
+        }
+    ],
+    "paths": {
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "description": "Creates a new user account after successful validation of a Firebase ID token. The Firebase token must be sent in the Authorization header as a Bearer token.",
+                "operationId": "registerUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "phone",
+                                    "password",
+                                    "account_type"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Test User"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+966512345678"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    },
+                                    "account_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "client",
+                                            "truck_owner"
+                                        ],
+                                        "example": "truck_owner"
+                                    },
+                                    "identity_image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "driving_license_image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful registration"
+                    },
+                    "401": {
+                        "description": "Invalid Firebase Token"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User Login",
+                "operationId": "loginUser",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+966512345678"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/update-location": {
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user location",
+                "description": "Updates the authenticated user's location.",
+                "operationId": "updateLocation",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "location"
+                                ],
+                                "properties": {
+                                    "location": {
+                                        "type": "string",
+                                        "example": "Riyadh, Saudi Arabia"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Location updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/forgot-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Initiate password reset (send OTP)",
+                "description": "Sends an OTP code to the user's phone for password reset. The phone number must exist in the system.",
+                "operationId": "forgotPassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone"
+                                ],
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+966512345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP for password reset has been sent."
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                }
+            }
+        },
+        "/api/my-bookings": {
+            "get": {
+                "tags": [
+                    "Booking Management"
+                ],
+                "summary": "Get the authenticated user's bookings",
+                "operationId": "getMyBookings",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "approved",
+                                "confirmed",
+                                "rejected",
+                                "cancelled",
+                                "completed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "incoming",
+                                "outgoing"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/bookings": {
+            "post": {
+                "tags": [
+                    "Booking Management"
+                ],
+                "summary": "Create a new booking request",
+                "operationId": "storeBooking",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "truck_id",
+                                    "start_datetime",
+                                    "end_datetime",
+                                    "days",
+                                    "hours",
+                                    "needs_delivery"
+                                ],
+                                "properties": {
+                                    "truck_id": {
+                                        "type": "integer"
+                                    },
+                                    "start_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-10-20 08:00:00"
+                                    },
+                                    "end_datetime": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2025-10-22 17:00:00"
+                                    },
+                                    "days": {
+                                        "type": "integer",
+                                        "example": "2"
+                                    },
+                                    "hours": {
+                                        "type": "integer",
+                                        "example": "9"
+                                    },
+                                    "needs_delivery": {
+                                        "type": "boolean",
+                                        "example": "true"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Booking request sent successfully"
+                    },
+                    "409": {
+                        "description": "Conflict, truck not available"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/my-bookings/{booking}/approve": {
+            "post": {
+                "tags": [
+                    "Booking Management"
+                ],
+                "summary": "Approve a booking request (Truck Owner)",
+                "operationId": "approveBooking",
+                "parameters": [
+                    {
+                        "name": "booking",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Booking approved"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/my-bookings/{booking}/reject": {
+            "post": {
+                "tags": [
+                    "Booking Management"
+                ],
+                "summary": "Reject a booking request (Truck Owner)",
+                "operationId": "rejectBooking",
+                "parameters": [
+                    {
+                        "name": "booking",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Booking rejected"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "Public Data"
+                ],
+                "summary": "Get all categories with their sub-categories",
+                "description": "Returns a list of main categories, each containing its sub-categories.",
+                "operationId": "getCategories",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/my-trucks": {
+            "get": {
+                "tags": [
+                    "My Trucks"
+                ],
+                "summary": "Get the authenticated user's trucks",
+                "description": "Returns a paginated list of the user's own trucks, with filtering options.",
+                "operationId": "getMyTrucks",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "active",
+                                "inactive"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "latest",
+                                "oldest"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trucks/{truck}": {
+            "get": {
+                "tags": [
+                    "Public Data"
+                ],
+                "summary": "Get details of a single truck",
+                "operationId": "getTruckDetails",
+                "parameters": [
+                    {
+                        "name": "truck",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Truck Management"
+                ],
+                "summary": "Update an existing truck",
+                "description": "To update a truck with files (images/video), you must send a POST request and include `_method=PATCH` in the form-data. This is a limitation of how browsers handle file uploads.",
+                "operationId": "updateTruck",
+                "parameters": [
+                    {
+                        "name": "truck",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "PATCH"
+                                        ],
+                                        "example": "PATCH"
+                                    },
+                                    "price_per_day": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": "1600.50"
+                                    },
+                                    "images[]": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Truck updated successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Truck not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Truck Management"
+                ],
+                "summary": "Delete a truck",
+                "description": "Requires authentication. Allows a truck owner to delete their own truck.",
+                "operationId": "deleteTruck",
+                "parameters": [
+                    {
+                        "name": "truck",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Truck deleted successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Truck not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/trucks": {
+            "post": {
+                "tags": [
+                    "Truck Management"
+                ],
+                "summary": "Add a new truck",
+                "description": "Requires authentication. Submits a new truck for admin approval.",
+                "operationId": "storeTruck",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "category_id",
+                                    "sub_category_id",
+                                    "year_of_manufacture",
+                                    "size",
+                                    "model",
+                                    "description",
+                                    "price_per_day",
+                                    "price_per_hour",
+                                    "work_start_time",
+                                    "work_end_time",
+                                    "pickup_location",
+                                    "delivery_available"
+                                ],
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "sub_category_id": {
+                                        "type": "integer"
+                                    },
+                                    "year_of_manufacture": {
+                                        "type": "integer",
+                                        "example": "2023"
+                                    },
+                                    "size": {
+                                        "type": "string",
+                                        "example": "25 Ton"
+                                    },
+                                    "model": {
+                                        "type": "string",
+                                        "example": "Caterpillar 320D"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "price_per_day": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "price_per_hour": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "work_start_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "08:00"
+                                    },
+                                    "work_end_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "18:00"
+                                    },
+                                    "pickup_location": {
+                                        "type": "string"
+                                    },
+                                    "delivery_available": {
+                                        "type": "boolean"
+                                    },
+                                    "delivery_price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "images[]": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "video": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Submitted for approval"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/{user}/trucks": {
+            "get": {
+                "tags": [
+                    "User Profile"
+                ],
+                "summary": "Get a specific user's active trucks",
+                "description": "Requires authentication. Returns a list of a user's publicly active trucks.",
+                "operationId": "getUserTrucks",
+                "parameters": [
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "description": "ID of the user",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/reset-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Reset user password",
+                "description": "Allows a user to reset their password using a valid token.",
+                "operationId": "f93180f97c46f79e028b188d8763b2e1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "description": "Password reset token",
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "description": "New password",
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password reset successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password has been reset successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid token or password",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Invalid token or password."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "User",
+            "description": "User"
+        },
+        {
+            "name": "Booking Management",
+            "description": "Booking Management"
+        },
+        {
+            "name": "Public Data",
+            "description": "Public Data"
+        },
+        {
+            "name": "My Trucks",
+            "description": "My Trucks"
+        },
+        {
+            "name": "Truck Management",
+            "description": "Truck Management"
+        },
+        {
+            "name": "User Profile",
+            "description": "User Profile"
+        }
+    ]
+}

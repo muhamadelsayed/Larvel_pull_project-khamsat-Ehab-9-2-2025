@@ -30,3 +30,5 @@ auth.json
 /truck-service/storage/app/firebase_credentials.json
 /data
 /photoes
+/truck-service
+/truck-service-host/storage/app/firebase_credentials.json
