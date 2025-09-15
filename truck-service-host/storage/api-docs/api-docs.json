@@ -331,8 +331,8 @@
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Initiate password reset (send OTP)",
-                "description": "Sends an OTP code to the user's phone for password reset. The phone number must exist in the system.",
+                "summary": "Check phone for password reset",
+                "description": "Validates that the provided phone number exists. If it exists, the client should proceed with Firebase OTP verification. This endpoint does not send the OTP.",
                 "operationId": "forgotPassword",
                 "requestBody": {
                     "required": true,
@@ -355,18 +355,30 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "OTP for password reset has been sent.",
+                        "description": "User found. Proceed with OTP verification.",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "OTP for password reset has been sent."
-                                        },
-                                        "phone": {
+                                            "example": "User found. Proceed with OTP verification."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
                                             "type": "string",
-                                            "example": "+966512345678"
+                                            "example": "This phone number is not registered with us."
                                         }
                                     },
                                     "type": "object"
@@ -938,75 +950,6 @@
                         "bearerAuth": []
                     }
                 ]
-            }
-        },
-        "/reset-password": {
-            "post": {
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Reset user password",
-                "description": "Allows a user to reset their password using a valid token.",
-                "operationId": "f93180f97c46f79e028b188d8763b2e1",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "token",
-                                    "password"
-                                ],
-                                "properties": {
-                                    "token": {
-                                        "description": "Password reset token",
-                                        "type": "string"
-                                    },
-                                    "password": {
-                                        "description": "New password",
-                                        "type": "string",
-                                        "format": "password"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Password reset successful",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Password has been reset successfully."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid token or password",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "error": {
-                                            "type": "string",
-                                            "example": "Invalid token or password."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                }
             }
         },
         "/api/my-bookings": {

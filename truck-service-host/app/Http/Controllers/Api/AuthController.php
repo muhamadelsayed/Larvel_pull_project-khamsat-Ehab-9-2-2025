@@ -337,8 +337,8 @@ class AuthController extends Controller
      *      @OA\Post(
      *          operationId="forgotPassword",
      *          tags={"Authentication"},
-     *          summary="Initiate password reset (send OTP)",
-     *          description="Sends an OTP code to the user's phone for password reset. The phone number must exist in the system.",
+     *          summary="Check phone for password reset",
+     *          description="Validates that the provided phone number exists. If it exists, the client should proceed with Firebase OTP verification. This endpoint does not send the OTP.",
      *          @OA\RequestBody(
      *              required=true,
      *              @OA\JsonContent(
@@ -346,125 +346,121 @@ class AuthController extends Controller
      *                  @OA\Property(property="phone", type="string", example="+966512345678")
      *              )
      *          ),
-    *          @OA\Response(
-    *              response=200,
-    *              description="OTP for password reset has been sent.",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="OTP for password reset has been sent."),
-    *                  @OA\Property(property="phone", type="string", example="+966512345678")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=422,
-    *              description="Validation Error",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="phone", type="array", @OA\Items(type="string", example="The phone field is required."))
-    *              )
-    *          )
+     *          @OA\Response(
+     *              response=200,
+     *              description="User found. Proceed with OTP verification.",
+     *              @OA\JsonContent(
+     *                  @OA\Property(property="message", type="string", example="User found. Proceed with OTP verification.")
+     *              )
+     *          ),
+     *          @OA\Response(
+     *              response=404,
+     *              description="User not found",
+     *              @OA\JsonContent(
+     *                  @OA\Property(property="message", type="string", example="This phone number is not registered with us.")
+     *              )
+     *          ),
+     *          @OA\Response(
+     *              response=422,
+     *              description="Validation Error",
+     *              @OA\JsonContent(
+     *                  @OA\Property(property="phone", type="array", @OA\Items(type="string", example="The phone field is required."))
+     *              )
+     *          )
      *      )
      * )
      */
-    public function forgotPassword(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'phone' => 'required|string|exists:users,phone',
-    ]);
+public function forgotPassword(Request $request)
+    {
+        // 1. التحقق من أن رقم الهاتف تم إرساله
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
+        // 2. التحقق من أن هذا الرقم مسجل لدينا بالفعل
+        $userExists = User::where('phone', $request->phone)->exists();
+
+        if ($userExists) {
+            // إذا كان المستخدم موجودًا، أعد استجابة نجاح للسماح للتطبيق
+            // بالبدء في عملية إرسال الـ OTP عبر Firebase.
+            return response()->json(['message' => 'User found. Proceed with OTP verification.'], 200);
+        } else {
+            // إذا لم يكن المستخدم موجودًا، أعد رسالة خطأ واضحة.
+            return response()->json(['message' => 'This phone number is not registered with us.'], 404);
+        }
     }
-
-    // الرمز المؤقت
-    $otpCode = '111111';
-
-    // -- التغيير يبدأ هنا --
-    // إنشاء سجل جديد في جدول الـ OTP
-    PasswordResetOtp::create([
-        'phone' => $request->phone,
-        'otp' => Hash::make($otpCode), // تشفير الرمز قبل الحفظ
-        'expires_at' => now()->addMinutes(5), // تحديد انتهاء الصلاحية بعد 5 دقائق
-    ]);
-    // -- التغيير ينتهي هنا --
-
-    return response()->json([
-        'message' => 'OTP for password reset has been sent.',
-        'phone' => $request->phone
-    ], 200);
-}
 /**
- * @OA\Post(
- *     path="/reset-password",
- *     summary="Reset user password",
- *     description="Allows a user to reset their password using a valid token.",
- *     tags={"Authentication"},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             required={"token","password"},
- *             @OA\Property(property="token", type="string", description="Password reset token"),
- *             @OA\Property(property="password", type="string", format="password", description="New password")
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Password reset successful",
- *         @OA\JsonContent(
- *             @OA\Property(property="message", type="string", example="Password has been reset successfully.")
- *         )
- *     ),
- *     @OA\Response(
- *         response=400,
- *         description="Invalid token or password",
- *         @OA\JsonContent(
- *             @OA\Property(property="error", type="string", example="Invalid token or password.")
- *         )
- *     )
- * )
+ * Reset user password using Firebase phone verification.
+ *
+ * Requirements:
+ * - Authorization: Bearer <Firebase ID Token> (required)
+ *
+ * Request body (JSON):
+ * - phone: string, required
+ * - password: string, required, min:8
+ * - password_confirmation: string, required, must match password
+ *
+ * Flow:
+ * - Verifies Firebase ID token.
+ * - Ensures token phone_number matches provided phone.
+ * - Updates the user's password if the user exists.
+ *
+ * Responses:
+ * - 200 OK: { "message": "Password has been updated successfully." }
+ * - 401 Unauthorized: { "message": "Firebase ID Token is missing." } or { "message": "Invalid Firebase ID Token: <reason>" }
+ * - 403 Forbidden: { "message": "Phone number does not match the verified token." }
+ * - 404 Not Found: { "message": "User not found." }
+ * - 422 Unprocessable Entity: { "<field>": ["<validation errors>"] }
+ *
+ * @param \Illuminate\Http\Request $request
+ * @return \Illuminate\Http\JsonResponse
  */
 public function resetPassword(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'phone' => 'required|string|exists:users,phone',
-        'otp' => 'required|string|size:6',
-        'password' => 'required|string|min:8|confirmed',
-    ]);
+    {
+        // 1. التحقق من صحة كلمة المرور الجديدة
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
+        // 2. التحقق من وجود Firebase ID Token في الهيدر
+        $firebaseToken = $request->bearerToken();
+        if (!$firebaseToken) {
+            return response()->json(['message' => 'Firebase ID Token is missing.'], 401);
+        }
+
+        // 3. التحقق من صحة الـ Token مع Firebase
+        try {
+            $factory = (new Factory)->withServiceAccount(config('services.firebase.credentials.file'));
+            $auth = $factory->createAuth();
+            $verifiedIdToken = $auth->verifyIdToken($firebaseToken);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Invalid Firebase ID Token: ' . $e->getMessage()], 401);
+        }
+        
+        // 4. التأكد من أن رقم الهاتف في الـ Token يطابق الرقم في الفورم
+        $firebasePhone = $verifiedIdToken->claims()->get('phone_number');
+        if ($firebasePhone !== $request->phone) {
+            return response()->json(['message' => 'Phone number does not match the verified token.'], 403);
+        }
+
+        // 5. العثور على المستخدم وتحديث كلمة المرور
+        $user = User::where('phone', $request->phone)->first();
+        if (!$user) {
+            // هذا التحقق احترازي، حيث أننا تحققنا منه في الخطوة الأولى
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+        
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return response()->json(['message' => 'Password has been updated successfully.'], 200);
     }
-
-    // البحث عن أحدث رمز تم إرساله لهذا الرقم ولم يتم استخدامه بعد
-    $otpRecord = PasswordResetOtp::where('phone', $request->phone)
-                                  ->whereNull('used_at') // <-- شرط مهم للبحث فقط في الرموز غير المستخدمة
-                                  ->latest()
-                                  ->first();
-
-    // التحقق المبدئي
-    if (!$otpRecord) {
-        return response()->json(['message' => 'OTP not found. Please request a new one.'], 404);
-    }
-    
-    // التحقق من انتهاء الصلاحية
-    if (now()->isAfter($otpRecord->expires_at)) {
-        return response()->json(['message' => 'This OTP has expired. Please request a new one.'], 400);
-    }
-
-    // التحقق من تطابق الرمز
-    if (!Hash::check($request->otp, $otpRecord->otp)) {
-        return response()->json(['message' => 'The provided OTP is incorrect.'], 400);
-    }
-
-    // --- إذا كانت كل الشروط صحيحة ---
-
-    // 1. تحديث كلمة المرور للمستخدم
-    $user = User::where('phone', $request->phone)->first();
-    $user->password = Hash::make($request->password);
-    $user->save();
-
-    // 2. تحديث سجل الـ OTP لتسجيل وقت استخدامه (بدلاً من حذفه)
-    $otpRecord->update(['used_at' => now()]);
-
-    return response()->json(['message' => 'Password has been updated successfully.'], 200);
-}
 
 }
