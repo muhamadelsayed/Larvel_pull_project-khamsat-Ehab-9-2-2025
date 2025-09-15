@@ -394,11 +394,11 @@ public function forgotPassword(Request $request)
     }
 /**
  * @OA\Post(
- *   path="/api/auth/password/reset",
+ *   path="/api/reset-password",
  *   summary="Reset user password using Firebase phone verification",
  *   description="Verifies a Firebase ID token, ensures the token phone_number matches the provided phone, and updates the user's password.",
  *   operationId="resetPasswordWithFirebasePhone",
- *   tags={"Auth"},
+ *   tags={"Authentication"},
  *   security={{"bearerAuth": {}}},
  *   @OA\RequestBody(
  *     required=true,
@@ -452,7 +452,7 @@ public function forgotPassword(Request $request)
  *     description="Unprocessable Entity - Validation errors.",
  *     @OA\JsonContent(
  *       type="object",
- *       additionalProperties=@OA\Schema(
+ *       @OA\AdditionalProperties(
  *         type="array",
  *         @OA\Items(type="string")
  *       ),
@@ -464,29 +464,6 @@ public function forgotPassword(Request $request)
  *     )
  *   )
  * )
- */
-/**
- * Reset user password using Firebase phone verification.
- *
- * Requirements:
- * - Authorization: Bearer <Firebase ID Token> (required)
- *
- * Request body (JSON):
- * - phone: string, required
- * - password: string, required, min:8
- * - password_confirmation: string, required, must match password
- *
- * Flow:
- * - Verifies Firebase ID token.
- * - Ensures token phone_number matches provided phone.
- * - Updates the user's password if the user exists.
- *
- * Responses:
- * - 200 OK: { "message": "Password has been updated successfully." }
- * - 401 Unauthorized: { "message": "Firebase ID Token is missing." } or { "message": "Invalid Firebase ID Token: <reason>" }
- * - 403 Forbidden: { "message": "Phone number does not match the verified token." }
- * - 404 Not Found: { "message": "User not found." }
- * - 422 Unprocessable Entity: { "<field>": ["<validation errors>"] }
  */
 public function resetPassword(Request $request)
     {
