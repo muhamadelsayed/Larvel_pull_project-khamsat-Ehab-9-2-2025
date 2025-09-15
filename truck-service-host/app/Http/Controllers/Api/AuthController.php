@@ -393,6 +393,79 @@ public function forgotPassword(Request $request)
         }
     }
 /**
+ * @OA\Post(
+ *   path="/api/auth/password/reset",
+ *   summary="Reset user password using Firebase phone verification",
+ *   description="Verifies a Firebase ID token, ensures the token phone_number matches the provided phone, and updates the user's password.",
+ *   operationId="resetPasswordWithFirebasePhone",
+ *   tags={"Auth"},
+ *   security={{"bearerAuth": {}}},
+ *   @OA\RequestBody(
+ *     required=true,
+ *     @OA\JsonContent(
+ *       type="object",
+ *       required={"phone","password","password_confirmation"},
+ *       @OA\Property(property="phone", type="string", description="E.164 formatted phone number associated with the Firebase user"),
+ *       @OA\Property(property="password", type="string", format="password", minLength=8, description="New password (min 8 characters)"),
+ *       @OA\Property(property="password_confirmation", type="string", format="password", description="Must match the password field"),
+ *       example={
+ *         "phone": "+15551234567",
+ *         "password": "newStrongP@ssw0rd",
+ *         "password_confirmation": "newStrongP@ssw0rd"
+ *       }
+ *     )
+ *   ),
+ *   @OA\Response(
+ *     response=200,
+ *     description="Password has been updated successfully.",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="message", type="string", example="Password has been updated successfully.")
+ *     )
+ *   ),
+ *   @OA\Response(
+ *     response=401,
+ *     description="Unauthorized - Missing or invalid Firebase ID Token.",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="message", type="string", example="Invalid Firebase ID Token: <reason>")
+ *     )
+ *   ),
+ *   @OA\Response(
+ *     response=403,
+ *     description="Forbidden - Phone number does not match the verified token.",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="message", type="string", example="Phone number does not match the verified token.")
+ *     )
+ *   ),
+ *   @OA\Response(
+ *     response=404,
+ *     description="Not Found - User not found.",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       @OA\Property(property="message", type="string", example="User not found.")
+ *     )
+ *   ),
+ *   @OA\Response(
+ *     response=422,
+ *     description="Unprocessable Entity - Validation errors.",
+ *     @OA\JsonContent(
+ *       type="object",
+ *       additionalProperties=@OA\Schema(
+ *         type="array",
+ *         @OA\Items(type="string")
+ *       ),
+ *       example={
+ *         "phone": {"The phone field is required."},
+ *         "password": {"The password must be at least 8 characters."},
+ *         "password_confirmation": {"The password confirmation does not match."}
+ *       }
+ *     )
+ *   )
+ * )
+ */
+/**
  * Reset user password using Firebase phone verification.
  *
  * Requirements:
@@ -414,9 +487,6 @@ public function forgotPassword(Request $request)
  * - 403 Forbidden: { "message": "Phone number does not match the verified token." }
  * - 404 Not Found: { "message": "User not found." }
  * - 422 Unprocessable Entity: { "<field>": ["<validation errors>"] }
- *
- * @param \Illuminate\Http\Request $request
- * @return \Illuminate\Http\JsonResponse
  */
 public function resetPassword(Request $request)
     {
