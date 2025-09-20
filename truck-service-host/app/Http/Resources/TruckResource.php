@@ -16,6 +16,7 @@ class TruckResource extends JsonResource
             'id' => $this->id,
             'status' => $this->status,
             'model' => $this->model,
+            'name' => $this->name,
             'year_of_manufacture' => $this->year_of_manufacture,
             'description' => $this->description,
             'price_per_day' => $this->price_per_day,
@@ -27,6 +28,7 @@ class TruckResource extends JsonResource
             'owner' => [
                 'name' => $this->user->name,
                 'phone' => $this->user->phone,
+                'profile_photo_url' => $this->user->profile_photo_url,
             ],
             'category' => $this->category->name,
             'sub_category' => $this->subCategory->name,

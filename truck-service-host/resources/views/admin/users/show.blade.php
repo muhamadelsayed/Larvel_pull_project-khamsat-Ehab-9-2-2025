@@ -38,6 +38,7 @@
                                 </span>
                             </div>
                             <div class="p-4">
+                                <h4 class="text-lg font-bold text-gray-800">{{ $truck->name }}</h4>
                                 <h4 class="text-lg font-bold text-gray-800">{{ $truck->model }}</h4>
                                 <p class="text-sm text-gray-600 mt-1">{{ $truck->category->name }} / {{ $truck->subCategory->name }}</p>
                                 <p class="text-sm text-gray-500 mt-2 truncate">{{ $truck->description }}</p>

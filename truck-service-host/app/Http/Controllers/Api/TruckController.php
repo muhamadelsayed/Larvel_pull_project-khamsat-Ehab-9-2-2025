@@ -109,6 +109,7 @@ class TruckController extends Controller
 public function store(Request $request)
 {
     $validated = $request->validate([
+        'name' => 'required|string|max:255',
         'category_id' => 'required|exists:categories,id',
         'sub_category_id' => 'required|exists:sub_categories,id',
         'year_of_manufacture' => 'required|digits:4',
@@ -223,6 +224,7 @@ public function update(Request $request, Truck $truck)
 
     // 2. التحقق من صحة المدخلات
     $validated = $request->validate([
+        'name' => 'required|string|max:255',
         'category_id' => 'sometimes|required|exists:categories,id',
         'sub_category_id' => 'sometimes|required|exists:sub_categories,id',
         'year_of_manufacture' => 'sometimes|required|digits:4',

@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // <-- الخطوة 1: قم باستيراد هذا
 use Spatie\Permission\Traits\HasRoles; // <-- استيراد
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -22,6 +24,7 @@ class User extends Authenticatable
         'name',
         'phone',
         'password',
+        'profile_photo_path',
         'account_type',
         'fleet_owner_code',
         'identity_image',
@@ -56,5 +59,17 @@ class User extends Authenticatable
     public function bookingsAsCustomer(): HasMany
 {
     return $this->hasMany(Booking::class, 'customer_id');
+}
+
+public function getProfilePhotoUrlAttribute(): string
+{
+    // إذا كان المسار يبدأ بـ http، فإنه رابط خارجي، أعده كما هو.
+    if (Str::startsWith($this->profile_photo_path, 'http')) {
+        return $this->profile_photo_path;
+    }
+    
+    // وإلا، فهو مسار داخلي، قم ببناء الرابط باستخدام asset().
+    // هذا سيجعل الكود جاهزًا عندما نسمح للمستخدم برفع صورته الخاصة.
+    return asset('storage/' . $this->profile_photo_path);
 }
 }

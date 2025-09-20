@@ -19,6 +19,7 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الموديل</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المالك</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التصنيف</th>
@@ -29,6 +30,7 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse ($trucks as $truck)
                         <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $truck->name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $truck->model }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $truck->user->name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $truck->category->name }}</td>

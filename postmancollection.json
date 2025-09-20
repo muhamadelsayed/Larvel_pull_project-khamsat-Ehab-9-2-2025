@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "a1b2c3d4-e5f6-a1b2-c3d4-e5f6a1b2c3d4",
+		"_postman_id": "1bf79d55-4b4f-490b-a3da-f5802150121a",
 		"name": "Truck Service API - Mohammed Sleem",
 		"description": "Complete API collection for the Truck Service application.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "36432142"
 	},
 	"item": [
 		{
@@ -41,16 +42,18 @@
 								{
 									"key": "account_type",
 									"value": "truck_owner",
-									"type": "text",
-									"description": "Can be 'client' or 'truck_owner'"
+									"description": "Can be 'client' or 'truck_owner'",
+									"type": "text"
 								},
 								{
 									"key": "identity_image",
-									"type": "file"
+									"type": "file",
+									"src": []
 								},
 								{
 									"key": "driving_license_image",
-									"type": "file"
+									"type": "file",
+									"src": []
 								}
 							]
 						},
@@ -91,6 +94,72 @@
 								"login"
 							]
 						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password (Step 1: Check Phone)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+966512345678\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/forgot-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"forgot-password"
+							]
+						},
+						"description": "Checks if the phone number exists in the database. If successful, the frontend proceeds with Firebase OTP flow."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password (Step 2: Verify & Update)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{firebaseIdToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"+966512345678\",\n    \"password\": \"newSecurePassword123\",\n    \"password_confirmation\": \"newSecurePassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reset-password"
+							]
+						},
+						"description": "Sends the new password along with the Firebase ID Token (as Bearer token) received after successful OTP verification."
 					},
 					"response": []
 				}
@@ -205,27 +274,92 @@
 						"body": {
 							"mode": "formdata",
 							"formdata": [
-								{"key": "category_id", "value": "1", "type": "text"},
-								{"key": "sub_category_id", "value": "1", "type": "text"},
-								{"key": "year_of_manufacture", "value": "2024", "type": "text"},
-								{"key": "size", "value": "30 Ton", "type": "text"},
-								{"key": "model", "value": "Komatsu PC200", "type": "text"},
-								{"key": "description", "value": "Brand new model with latest features.", "type": "text"},
-								{"key": "price_per_day", "value": "1800", "type": "text"},
-								{"key": "price_per_hour", "value": "250", "type": "text"},
-								{"key": "work_start_time", "value": "07:00", "type": "text"},
-								{"key": "work_end_time", "value": "19:00", "type": "text"},
-								{"key": "pickup_location", "value": "Dammam Port", "type": "text"},
-								{"key": "delivery_available", "value": "1", "type": "text"},
-								{"key": "delivery_price", "value": "400", "type": "text"},
-								{"key": "images[]", "type": "file"},
-								{"key": "video", "type": "file"}
+								{
+									"key": "category_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "sub_category_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "year_of_manufacture",
+									"value": "2024",
+									"type": "text"
+								},
+								{
+									"key": "size",
+									"value": "30 Ton",
+									"type": "text"
+								},
+								{
+									"key": "model",
+									"value": "Komatsu PC200",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Brand new model with latest features.",
+									"type": "text"
+								},
+								{
+									"key": "price_per_day",
+									"value": "1800",
+									"type": "text"
+								},
+								{
+									"key": "price_per_hour",
+									"value": "250",
+									"type": "text"
+								},
+								{
+									"key": "work_start_time",
+									"value": "07:00",
+									"type": "text"
+								},
+								{
+									"key": "work_end_time",
+									"value": "19:00",
+									"type": "text"
+								},
+								{
+									"key": "pickup_location",
+									"value": "Dammam Port",
+									"type": "text"
+								},
+								{
+									"key": "delivery_available",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "delivery_price",
+									"value": "400",
+									"type": "text"
+								},
+								{
+									"key": "images[]",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "video",
+									"type": "file",
+									"src": []
+								}
 							]
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/trucks",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "trucks"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks"
+							]
 						}
 					},
 					"response": []
@@ -238,15 +372,35 @@
 						"body": {
 							"mode": "formdata",
 							"formdata": [
-								{"key": "_method", "value": "PATCH", "type": "text", "description": "Required when sending files with PATCH method."},
-								{"key": "price_per_day", "value": "1950", "type": "text", "description": "Example: updating only the price."},
-								{"key": "description", "value": "Updated description with new details.", "type": "text"}
+								{
+									"key": "_method",
+									"value": "PATCH",
+									"description": "Required when sending files with PATCH method.",
+									"type": "text"
+								},
+								{
+									"key": "price_per_day",
+									"value": "1950",
+									"description": "Example: updating only the price.",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Updated description with new details.",
+									"type": "text"
+								}
 							]
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/trucks/1",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "trucks", "1"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks",
+								"1"
+							]
 						},
 						"description": "To send files (images/video), send as POST and add a `_method` field with value `PATCH`."
 					},
@@ -259,8 +413,14 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/trucks/1",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "trucks", "1"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks",
+								"1"
+							]
 						}
 					},
 					"response": []
@@ -272,12 +432,29 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/my-trucks?status=pending&sort_by=latest",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "my-trucks"],
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"my-trucks"
+							],
 							"query": [
-								{"key": "status", "value": "pending", "description": "(Optional) Filter by status: pending, active, inactive"},
-								{"key": "sort_by", "value": "latest", "description": "(Optional) Sort by: latest, oldest"},
-								{"key": "page", "value": null, "disabled": true}
+								{
+									"key": "status",
+									"value": "pending",
+									"description": "(Optional) Filter by status: pending, active, inactive"
+								},
+								{
+									"key": "sort_by",
+									"value": "latest",
+									"description": "(Optional) Sort by: latest, oldest"
+								},
+								{
+									"key": "page",
+									"value": null,
+									"disabled": true
+								}
 							]
 						}
 					},
@@ -286,7 +463,13 @@
 			],
 			"auth": {
 				"type": "bearer",
-				"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{accessToken}}",
+						"type": "string"
+					}
+				]
 			}
 		},
 		{
@@ -300,12 +483,21 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"truck_id\": 1,\n    \"start_datetime\": \"2025-10-25 09:00:00\",\n    \"end_datetime\": \"2025-10-27 17:00:00\",\n    \"days\": 3,\n    \"hours\": 0,\n    \"needs_delivery\": true\n}",
-							"options": {"raw": {"language": "json"}}
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/bookings",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "bookings"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"bookings"
+							]
 						}
 					},
 					"response": []
@@ -317,11 +509,24 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/my-bookings?type=incoming&status=pending",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "my-bookings"],
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"my-bookings"
+							],
 							"query": [
-								{"key": "type", "value": "incoming", "description": "(Optional) Filter by type: incoming (requests on my trucks), outgoing (my requests)"},
-								{"key": "status", "value": "pending", "description": "(Optional) Filter by status"}
+								{
+									"key": "type",
+									"value": "incoming",
+									"description": "(Optional) Filter by type: incoming (requests on my trucks), outgoing (my requests)"
+								},
+								{
+									"key": "status",
+									"value": "pending",
+									"description": "(Optional) Filter by status"
+								}
 							]
 						}
 					},
@@ -334,8 +539,15 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/my-bookings/1/approve",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "my-bookings", "1", "approve"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"my-bookings",
+								"1",
+								"approve"
+							]
 						}
 					},
 					"response": []
@@ -347,8 +559,15 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/my-bookings/1/reject",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "my-bookings", "1", "reject"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"my-bookings",
+								"1",
+								"reject"
+							]
 						}
 					},
 					"response": []
@@ -356,7 +575,13 @@
 			],
 			"auth": {
 				"type": "bearer",
-				"bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{accessToken}}",
+						"type": "string"
+					}
+				]
 			}
 		}
 	],

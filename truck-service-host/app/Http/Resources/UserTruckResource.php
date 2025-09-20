@@ -15,6 +15,7 @@ class UserTruckResource extends JsonResource
             'pickup_location' => $this->pickup_location,
             'price_per_day' => $this->price_per_day,
             'category' => $this->category->name,
+            'name' => $this->name,
             'sub_category' => $this->subCategory->name,
             // جلب رابط الصورة الأولى فقط (إذا وجدت)
             'main_image' => $this->images->first() ? asset('storage/' . $this->images->first()->path) : null,

@@ -27,9 +27,11 @@ class BookingResource extends JsonResource
             'other_party' => $isOwner ? [
                 'type' => 'customer',
                 'name' => $this->customer->name,
+                'profile_photo_url' => $this->customer->profile_photo_url,
             ] : [
                 'type' => 'owner',
                 'name' => $this->truck->user->name,
+                'profile_photo_url' => $this->truck->user->profile_photo_url,
             ],
             'created_at' => $this->created_at->format('Y-m-d H:i'),
         ];

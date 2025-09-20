@@ -59,6 +59,7 @@
             <div class="bg-white p-6 rounded-lg shadow-lg">
                 <h3 class="text-lg font-semibold border-b pb-2 mb-4">بيانات المالك</h3>
                 <dl>
+                    <div><dt class="font-medium text-gray-500">اسم الشاحنة</dt><dd class="text-gray-900 font-bold">{{ $truck->name }}</dd></div>
                     <div><dt class="font-medium text-gray-500">الاسم</dt><dd class="text-gray-900">{{ $truck->user->name }}</dd></div>
                     <div class="mt-4"><dt class="font-medium text-gray-500">رقم الهاتف</dt><dd class="text-gray-900">{{ $truck->user->phone }}</dd></div>
                 </dl>
