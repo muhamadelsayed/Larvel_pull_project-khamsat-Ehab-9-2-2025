@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Http\Resources\UserTruckResource;
 
 /**
  * @group Truck Management
@@ -16,6 +17,62 @@ use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class TruckController extends Controller
 {
     use AuthorizesRequests;
+    /**
+     * عرض قائمة بجميع الشاحنات النشطة مع دعم الفلاتر والـ pagination.
+     */
+    public function index(Request $request)
+    {
+        // 1. التحقق من صحة الفلاتر (اختياري)
+        $request->validate([
+            'category_id' => 'nullable|integer|exists:categories,id',
+            'sub_category_id' => 'nullable|integer|exists:sub_categories,id',
+            'price_min' => 'nullable|numeric|min:0',
+            'price_max' => 'nullable|numeric|min:0',
+            'sort_by' => 'nullable|string|in:latest,price_asc,price_desc'
+        ]);
+
+        // 2. البدء بالاستعلام الأساسي: جلب الشاحنات النشطة فقط
+        $trucksQuery = Truck::query()->where('status', 'active');
+
+        // 3. تطبيق الفلاتر الاختيارية
+        
+        // فلتر حسب التصنيف الرئيسي
+        $trucksQuery->when($request->category_id, function ($query, $categoryId) {
+            // هنا نستخدم علاقة hasManyThrough التي أنشأناها
+            $query->whereHas('category', fn($q) => $q->where('id', $categoryId));
+        });
+        
+        // فلتر حسب التصنيف الفرعي
+        $trucksQuery->when($request->sub_category_id, function ($query, $subCategoryId) {
+            $query->where('sub_category_id', $subCategoryId);
+        });
+
+        // فلتر حسب نطاق السعر (لليوم)
+        $trucksQuery->when($request->price_min, function ($query, $priceMin) {
+            $query->where('price_per_day', '>=', $priceMin);
+        });
+
+        $trucksQuery->when($request->price_max, function ($query, $priceMax) {
+            $query->where('price_per_day', '<=', $priceMax);
+        });
+        
+        // 4. تطبيق الترتيب
+        $sortBy = $request->input('sort_by', 'latest'); // الافتراضي هو الأحدث
+        
+        if ($sortBy === 'price_asc') {
+            $trucksQuery->orderBy('price_per_day', 'asc');
+        } elseif ($sortBy === 'price_desc') {
+            $trucksQuery->orderBy('price_per_day', 'desc');
+        } else {
+            $trucksQuery->latest(); // Default sort
+        }
+
+        // 5. تحميل العلاقات اللازمة (Eager Loading) لتجنب استعلامات N+1
+        $trucks = $trucksQuery->with(['category', 'subCategory', 'images'])->paginate(12); // 12 شاحنة في الصفحة
+
+        // 6. إرجاع النتائج باستخدام الـ Resource
+        return UserTruckResource::collection($trucks);
+    }
     /**
      * @OA\PathItem(
      *      path="/api/trucks/{truck}",
