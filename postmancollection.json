@@ -77,7 +77,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"phone\": \"+966512345678\",\n    \"password\": \"password123\"\n}",
+							"raw": "{\n    \"phone\": \"+9665656556\",\n    \"password\": \"12345678\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -142,7 +142,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"phone\": \"+966512345678\",\n    \"password\": \"newSecurePassword123\",\n    \"password_confirmation\": \"newSecurePassword123\"\n}",
+							"raw": "{\n    \"phone\": \"+201552739347\",\n    \"password\": \"123456789\",\n    \"password_confirmation\": \"123456789\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -160,6 +160,43 @@
 							]
 						},
 						"description": "Sends the new password along with the Firebase ID Token (as Bearer token) received after successful OTP verification."
+					},
+					"response": []
+				},
+				{
+					"name": "Update location",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"location\":\"test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/update-location",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"update-location"
+							]
+						}
 					},
 					"response": []
 				}
@@ -192,14 +229,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/trucks/1",
+							"raw": "{{baseUrl}}/api/trucks/11",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"trucks",
-								"1"
+								"11"
 							]
 						}
 					},
@@ -234,16 +271,90 @@
 					"name": "Get Another User's Trucks",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
 						"url": {
-							"raw": "{{baseUrl}}/api/users/2/trucks",
+							"raw": "{{baseUrl}}/api/users/3/trucks",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"api",
 								"users",
-								"2",
+								"3",
+								"trucks"
+							]
+						},
+						"description": "Gets all *active* trucks for a specific user ID."
+					},
+					"response": []
+				},
+				{
+					"name": "List All Active Trucks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/trucks?page=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"trucks"
+							],
+							"query": [
+								{
+									"key": "sub_category_id",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "sort_by",
+									"value": "price_asc",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Gets all *active* trucks for a specific user ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sup category trucks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/sub-categories/1/trucks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"sub-categories",
+								"1",
 								"trucks"
 							]
 						},
@@ -276,12 +387,12 @@
 							"formdata": [
 								{
 									"key": "category_id",
-									"value": "1",
+									"value": "5",
 									"type": "text"
 								},
 								{
 									"key": "sub_category_id",
-									"value": "1",
+									"value": "2",
 									"type": "text"
 								},
 								{
@@ -342,12 +453,17 @@
 								{
 									"key": "images[]",
 									"type": "file",
-									"src": []
+									"src": "/C:/Users/smart/Pictures/TREE/2531432.jpg"
 								},
 								{
 									"key": "video",
 									"type": "file",
-									"src": []
+									"src": "/C:/Users/smart/Documents/محمد/assam/ZafatQueen/uploads/file-1756196975125.mp4"
+								},
+								{
+									"key": "name",
+									"value": "name test",
+									"type": "text"
 								}
 							]
 						},
@@ -407,6 +523,48 @@
 					"response": []
 				},
 				{
+					"name": "Deactivate Truck",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/my-trucks/11/deactivate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"my-trucks",
+								"11",
+								"deactivate"
+							]
+						},
+						"description": "To send files (images/video), send as POST and add a `_method` field with value `PATCH`."
+					},
+					"response": []
+				},
+				{
+					"name": "Request Activation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/my-trucks/11/request-activation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"my-trucks",
+								"11",
+								"request-activation"
+							]
+						},
+						"description": "To send files (images/video), send as POST and add a `_method` field with value `PATCH`."
+					},
+					"response": []
+				},
+				{
 					"name": "Delete Truck",
 					"request": {
 						"method": "DELETE",
@@ -431,7 +589,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/my-trucks?status=pending&sort_by=latest",
+							"raw": "{{baseUrl}}/api/my-trucks",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -443,16 +601,18 @@
 								{
 									"key": "status",
 									"value": "pending",
-									"description": "(Optional) Filter by status: pending, active, inactive"
+									"description": "(Optional) Filter by status: pending, active, inactive",
+									"disabled": true
 								},
 								{
 									"key": "sort_by",
 									"value": "latest",
-									"description": "(Optional) Sort by: latest, oldest"
+									"description": "(Optional) Sort by: latest, oldest",
+									"disabled": true
 								},
 								{
 									"key": "page",
-									"value": null,
+									"value": "",
 									"disabled": true
 								}
 							]

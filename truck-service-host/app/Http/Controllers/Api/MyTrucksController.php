@@ -56,36 +56,41 @@ class MyTrucksController extends Controller
     *      )
     * )
         */
-    public function index(Request $request)
+     public function index(Request $request)
     {
-        // 1. التحقق من صحة الفلاتر المرسلة (اختياري)
+        // 1. التحقق من صحة الفلاتر المرسلة
         $request->validate([
             'status' => ['nullable', Rule::in(['pending', 'active', 'inactive'])],
+            'sub_category_id' => 'nullable|integer|exists:sub_categories,id', // <-- إضافة جديدة
             'sort_by' => ['nullable', Rule::in(['latest', 'oldest'])],
         ]);
 
         // 2. البدء ببناء الاستعلام لشاحنات المستخدم الحالي فقط
         $trucksQuery = auth()->user()->trucks()
-            ->with(['category', 'images']); // تحميل العلاقات لتحسين الأداء
+            ->with(['category','subCategory', 'images']); // تحميل العلاقات لتحسين الأداء
 
         // 3. تطبيق فلتر الحالة (status) إذا تم إرساله
-        if ($request->filled('status')) {
-            $trucksQuery->where('status', $request->status);
-        }
+        $trucksQuery->when($request->filled('status'), function ($query) use ($request) {
+            $query->where('status', $request->status);
+        });
 
-        // 4. تطبيق الترتيب
-        $sortBy = $request->input('sort_by', 'latest'); // الافتراضي هو الأحدث
+        // 4. تطبيق فلتر التصنيف الفرعي (sub_category_id) إذا تم إرساله <-- إضافة جديدة
+        $trucksQuery->when($request->filled('sub_category_id'), function ($query) use ($request) {
+            $query->where('sub_category_id', $request->sub_category_id);
+        });
+
+        // 5. تطبيق الترتيب
+        $sortBy = $request->input('sort_by', 'latest');
         if ($sortBy === 'latest') {
-            $trucksQuery->latest(); // يرتب تنازلياً حسب created_at
+            $trucksQuery->latest();
         } else {
-            $trucksQuery->oldest(); // يرتب تصاعدياً حسب created_at
+            $trucksQuery->oldest();
         }
         
-        // 5. تنفيذ الاستعلام مع pagination
-        // paginate(10) يعني عرض 10 شاحنات في كل صفحة
+        // 6. تنفيذ الاستعلام مع pagination
         $paginatedTrucks = $trucksQuery->paginate(10);
         
-        // 6. إرجاع النتائج باستخدام الـ Resource
+        // 7. إرجاع النتائج باستخدام الـ Resource
         return MyTruckResource::collection($paginatedTrucks);
     }
 }

@@ -21,6 +21,7 @@ class MyTruckResource extends JsonResource
             'price_per_day' => $this->price_per_day,
             'name' => $this->name,
             'category' => $this->category->name,
+            'sub_category' => $this->subCategory->name,
             // عرض الصورة الرئيسية للشاحنة
             'main_image' => $this->images->first() ? asset('storage/' . $this->images->first()->path) : null,
             'created_at' => $this->created_at->format('Y-m-d H:i'),

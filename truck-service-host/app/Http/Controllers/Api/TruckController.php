@@ -99,13 +99,24 @@ class TruckController extends Controller
     * )
      */
     public function show(Truck $truck)
-    {
-        // تأكد من أن الشاحنة نشطة قبل عرضها للجميع
-        if ($truck->status !== 'active' && $truck->user_id !== auth()->id()) {
-            return response()->json(['message' => 'Not found or not active.'], 404);
-        }
+{
+    // 1. التحقق مما إذا كان هناك مستخدم مسجل دخوله
+    $user = auth('sanctum')->user();
+
+    // 2. تحديد ما إذا كان المستخدم الحالي هو مالك الشاحنة
+    $isOwner = $user && $user->id === $truck->user_id;
+
+    // 3. تطبيق منطق الصلاحية
+    // اسمح بالوصول إذا كانت الشاحنة "نشطة" (لأي شخص)
+    // أو إذا كان المستخدم الحالي هو "المالك" (لأي حالة)
+    if ($truck->status === 'active' || $isOwner) {
+        // إذا كان الوصول مسموحًا، قم بتحميل كل العلاقات وأرجع البيانات
         return new TruckResource($truck->load('user', 'category', 'subCategory', 'images'));
     }
+
+    // 4. إذا لم تتحقق الشروط، أرجع خطأ "غير موجود"
+    return response()->json(['message' => 'Truck not found or you do not have permission to view it.'], 404);
+}
 
 /**
  * @OA\PathItem(
@@ -279,9 +290,10 @@ public function update(Request $request, Truck $truck)
     // 1. التحقق من أن المستخدم يملك الشاحنة
     $this->authorize('update', $truck);
 
-    // 2. التحقق من صحة المدخلات
+    // 2. التحقق من صحة المدخلات (جميعها اختيارية)
+    // "sometimes" تعني: قم بتطبيق قواعد التحقق هذه فقط إذا كان الحقل موجودًا في الطلب.
     $validated = $request->validate([
-        'name' => 'required|string|max:255',
+        'name' => 'sometimes|required|string|max:255',
         'category_id' => 'sometimes|required|exists:categories,id',
         'sub_category_id' => 'sometimes|required|exists:sub_categories,id',
         'year_of_manufacture' => 'sometimes|required|digits:4',
@@ -305,30 +317,34 @@ public function update(Request $request, Truck $truck)
     // 3. تحديث البيانات داخل Transaction
     DB::transaction(function () use ($request, $truck, $validated) {
         
-        // الخطوة 3.1: فصل البيانات النصية عن الوسائط
+        // 3.1 فصل البيانات النصية عن الوسائط
         $truckData = collect($validated)->except(['images', 'video'])->all();
-
-        // الخطوة 3.2: تحديث البيانات النصية وإعادة الحالة إلى "قيد المراجعة"
-        $truck->update(array_merge($truckData, ['status' => 'pending']));
-
-        // الخطوة 3.3: التعامل مع تحديث الفيديو (إذا تم إرسال ملف جديد)
-        if ($request->hasFile('video')) {
-            // ملاحظة: لا نحذف الفيديو القديم بناءً على طلبك
-            $videoPath = $request->file('video')->store('trucks/videos', 'public');
-            $truck->update(['video' => $videoPath]);
+        
+        // 3.2 تحديث البيانات النصية وإعادة الحالة إلى "قيد المراجعة"
+        // فقط إذا تم إرسال أي بيانات نصية
+        if (!empty($truckData)) {
+            $truck->update(array_merge($truckData, ['status' => 'pending']));
         }
 
-        // الخطوة 3.4: التعامل مع تحديث الصور (إذا تم إرسال ملفات جديدة)
+        // 3.3 التعامل مع تحديث الفيديو (إذا تم إرسال ملف جديد)
+        if ($request->hasFile('video')) {
+            $videoPath = $request->file('video')->store('trucks/videos', 'public');
+            // التأكد من أن الحالة تصبح pending حتى لو تم تحديث الفيديو فقط
+            $truck->update(['video' => $videoPath, 'status' => 'pending']);
+        }
+
+        // 3.4 التعامل مع تحديث الصور (إذا تم إرسال ملفات جديدة)
         if ($request->hasFile('images')) {
-            // أولاً، نحذف سجلات الصور القديمة من قاعدة البيانات
-            // (الملفات الفعلية لا تُحذف)
+            // حذف سجلات الصور القديمة من قاعدة البيانات
             $truck->images()->delete();
             
-            // ثم نضيف سجلات الصور الجديدة
+            // إضافة سجلات الصور الجديدة
             foreach ($request->file('images') as $imageFile) {
                 $path = $imageFile->store('trucks/images', 'public');
                 $truck->images()->create(['path' => $path]);
             }
+            // التأكد من أن الحالة تصبح pending حتى لو تم تحديث الصور فقط
+            $truck->update(['status' => 'pending']);
         }
     });
 

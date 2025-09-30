@@ -14,6 +14,7 @@ class UserTruckResource extends JsonResource
             'model' => $this->model,
             'pickup_location' => $this->pickup_location,
             'price_per_day' => $this->price_per_day,
+            'status' => $this->status,
             'category' => $this->category->name,
             'name' => $this->name,
             'sub_category' => $this->subCategory->name,
