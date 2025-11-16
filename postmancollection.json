@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "1. Authentication",
+			"name": "1.  Authentication",
 			"item": [
 				{
 					"name": "Register (via Firebase)",
