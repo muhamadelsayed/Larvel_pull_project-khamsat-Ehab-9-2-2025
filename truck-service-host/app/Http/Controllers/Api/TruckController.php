@@ -73,31 +73,7 @@ class TruckController extends Controller
         // 6. إرجاع النتائج باستخدام الـ Resource
         return UserTruckResource::collection($trucks);
     }
-    /**
-     * @OA\PathItem(
-     *      path="/api/trucks/{truck}",
-     *      @OA\Get(
-     *          operationId="getTruckDetails",
-     *          tags={"Public Data"},
-     *          summary="Get details of a single truck",
-     *          @OA\Parameter(name="truck", in="path", required=true, @OA\Schema(type="integer")),
-    *          @OA\Response(
-    *              response=200,
-    *              description="Truck details retrieved successfully",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="data", type="object", ref="#/components/schemas/TruckResource")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=404,
-    *              description="Not found or not active.",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="Not found or not active.")
-    *              )
-    *          )
-    *      )
-    * )
-     */
+   
     public function show(Truck $truck)
 {
     // 1. التحقق مما إذا كان هناك مستخدم مسجل دخوله
@@ -118,62 +94,7 @@ class TruckController extends Controller
     return response()->json(['message' => 'Truck not found or you do not have permission to view it.'], 404);
 }
 
-/**
- * @OA\PathItem(
- *      path="/api/trucks",
- *      @OA\Post(
- *          operationId="storeTruck",
- *          tags={"Truck Management"},
- *          summary="Add a new truck",
- *          description="Requires authentication. Submits a new truck for admin approval.",
- *          security={{"bearerAuth":{}}},
- *          @OA\RequestBody(
- *              required=true,
- *              @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
- *                  required={"category_id", "sub_category_id", "year_of_manufacture", "size", "model", "description", "price_per_day", "price_per_hour", "work_start_time", "work_end_time", "pickup_location", "delivery_available"},
- *                  @OA\Property(property="category_id", type="integer"),
- *                  @OA\Property(property="sub_category_id", type="integer"),
- *                  @OA\Property(property="year_of_manufacture", type="integer", example="2023"),
- *                  @OA\Property(property="size", type="string", example="25 Ton"),
- *                  @OA\Property(property="model", type="string", example="Caterpillar 320D"),
- *                  @OA\Property(property="description", type="string"),
- *                  @OA\Property(property="price_per_day", type="number", format="float"),
- *                  @OA\Property(property="price_per_hour", type="number", format="float"),
- *                  @OA\Property(property="work_start_time", type="string", format="time", example="08:00"),
- *                  @OA\Property(property="work_end_time", type="string", format="time", example="18:00"),
- *                  @OA\Property(property="pickup_location", type="string"),
- *                  @OA\Property(property="delivery_available", type="boolean"),
- *                  @OA\Property(property="delivery_price", type="number", format="float"),
- *                  @OA\Property(property="images[]", type="string", format="binary"),
- *                  @OA\Property(property="video", type="string", format="binary"),
- *              ))
- *          ),
- *          @OA\Response(
- *              response=201,
- *              description="Truck submitted for approval.",
- *              @OA\JsonContent(
- *                  @OA\Property(property="message", type="string", example="Truck submitted for approval."),
- *                  @OA\Property(property="truck_id", type="integer", example=123)
- *              )
- *          ),
- *          @OA\Response(
- *              response=422,
- *              description="Validation error",
- *              @OA\JsonContent(
- *                  @OA\Property(property="message", type="string", example="The given data was invalid."),
- *                  @OA\Property(property="errors", type="object")
- *              )
- *          ),
- *          @OA\Response(
- *              response=401,
- *              description="Unauthenticated",
- *              @OA\JsonContent(
- *                  @OA\Property(property="message", type="string", example="Unauthenticated.")
- *              )
- *          )
- *      )
- * )
- */
+
 public function store(Request $request)
 {
     $validated = $request->validate([
@@ -227,64 +148,7 @@ public function store(Request $request)
     return response()->json(['message' => 'Truck submitted for approval.', 'truck_id' => $truck->id], 201);
 }
 
- /**
-     * @OA\PathItem(
-     *      path="/api/trucks/{truck}",
-     *      @OA\Post(
-     *          operationId="updateTruck",
-     *          tags={"Truck Management"},
-     *          summary="Update an existing truck",
-     *          description="To update a truck with files (images/video), you must send a POST request and include `_method=PATCH` in the form-data. This is a limitation of how browsers handle file uploads.",
-     *          security={{"bearerAuth":{}}},
-     *          @OA\Parameter(name="truck", in="path", required=true, @OA\Schema(type="integer")),
-     *          @OA\RequestBody(
-     *              required=true,
-     *              @OA\MediaType(mediaType="multipart/form-data", @OA\Schema(
-     *                  @OA\Property(property="_method", type="string", enum={"PATCH"}, example="PATCH"),
-     *                  @OA\Property(property="price_per_day", type="number", format="float", example="1600.50"),
-     *                  @OA\Property(property="images[]", type="string", format="binary")
-     *              ))
-     *          ),
-    *          @OA\Response(
-    *              response=200,
-    *              description="Truck updated and awaiting re-approval.",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="Truck updated and awaiting re-approval."),
-    *                  @OA\Property(property="truck_id", type="integer", example=123)
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=422,
-    *              description="Validation error",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="The given data was invalid."),
-    *                  @OA\Property(property="errors", type="object")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=401,
-    *              description="Unauthenticated",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="Unauthenticated.")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=403,
-    *              description="Forbidden",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="This action is unauthorized.")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=404,
-    *              description="Truck not found",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="Truck not found.")
-    *              )
-    *          )
-     *      )
-     * )
-     */
+ 
 public function update(Request $request, Truck $truck)
 {
     // 1. التحقق من أن المستخدم يملك الشاحنة
@@ -354,45 +218,7 @@ public function update(Request $request, Truck $truck)
     ], 200);
 }
 
-   /**
-     * @OA\Delete(
-     *      path="/api/trucks/{truck}",
-     *      operationId="deleteTruck",
-     *      tags={"Truck Management"},
-     *      summary="Delete a truck",
-     *      description="Requires authentication. Allows a truck owner to delete their own truck.",
-     *      security={{"bearerAuth":{}}},
-     *      @OA\Parameter(name="truck", in="path", required=true, @OA\Schema(type="integer")),
-     *      @OA\Response(
-     *          response=200,
-     *          description="Truck has been successfully deleted.",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Truck has been successfully deleted.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=401,
-     *          description="Unauthenticated",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Unauthenticated.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=403,
-     *          description="Forbidden",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="This action is unauthorized.")
-     *          )
-     *      ),
-     *      @OA\Response(
-     *          response=404,
-     *          description="Truck not found",
-     *          @OA\JsonContent(
-     *              @OA\Property(property="message", type="string", example="Truck not found.")
-     *          )
-     *      )
-     * )
-     */
+ 
 public function destroy(Truck $truck)
 {
     // 1. التحقق من أن المستخدم يملك الشاحنة

@@ -18,9 +18,15 @@ class BookingResource extends JsonResource
             'end_datetime' => $this->end_datetime->format('Y-m-d H:i'),
             'total_price' => $this->total_price,
             // عرض بيانات الشاحنة
-            'truck' => [
+              'truck' => [
                 'id' => $this->truck->id,
+                'name' => $this->truck->name,
                 'model' => $this->truck->model,
+                'status' => $this->truck->status,
+                'pickup_location' => $this->truck->pickup_location,
+                'price_per_day' => $this->truck->price_per_day,
+                'category' => $this->truck->category->name,
+                'sub_category' => $this->truck->subCategory->name,
                 'main_image' => $this->truck->images->first() ? asset('storage/' . $this->truck->images->first()->path) : null,
             ],
             // عرض بيانات الطرف الآخر
