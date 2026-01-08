@@ -18,10 +18,12 @@ class BookingResource extends JsonResource
             'end_datetime' => $this->end_datetime->format('Y-m-d H:i'),
             'total_price' => $this->total_price,
             // عرض بيانات الشاحنة
+            'customer_name' => $this->customer->name,
               'truck' => [
                 'id' => $this->truck->id,
                 'name' => $this->truck->name,
                 'model' => $this->truck->model,
+                'owner_name' => $this->truck->user->name,
                 'status' => $this->truck->status,
                 'pickup_location' => $this->truck->pickup_location,
                 'price_per_day' => $this->truck->price_per_day,
