@@ -91,12 +91,16 @@ Route::middleware(['auth:web', 'can:view users'])->prefix('admin')->name('admin.
             Route::patch('/{subCategory}', 'update')->name('update');
             Route::delete('/{subCategory}', 'destroy')->name('destroy');
         });
-         Route::get('/trucks', [TruckController::class, 'index'])->name('trucks.index')->middleware('can:manage trucks');
-    Route::get('/trucks/{truck}', [TruckController::class, 'show'])->name('trucks.show')->middleware('can:manage trucks');
-    Route::patch('/trucks/{truck}/status', [TruckController::class, 'updateStatus'])->name('trucks.status.update')->middleware('can:manage trucks');
+        Route::get('/trucks', [TruckController::class, 'index'])->name('trucks.index')->middleware('can:manage trucks');
+        Route::get('/trucks/{truck}', [TruckController::class, 'show'])->name('trucks.show')->middleware('can:manage trucks');
+        Route::patch('/trucks/{truck}/status', [TruckController::class, 'updateStatus'])->name('trucks.status.update')->middleware('can:manage trucks');
 
     // --- إدارة الحجوزات ---
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index')->middleware('can:manage trucks'); // نستخدم نفس صلاحية الشاحنات
+    // -->> المسارات الجديدة لإدارة حالة الحجز <<--
+    Route::get('/bookings/{booking}/status', [BookingController::class, 'showStatusPage'])->name('bookings.status')->middleware('can:manage trucks');
+    Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus'])->name('bookings.status.update')->middleware('can:manage trucks');
+    
 });
 
 // =========================================================================

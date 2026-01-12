@@ -93,64 +93,7 @@ use Exception; // <-- إضافة جديدة
  */
 class AuthController extends Controller
 {
-
-    /**
-     * @OA\PathItem(
-     *      path="/api/register",
-     *      @OA\Post(
-     *          operationId="registerUser",
-     *          tags={"Authentication"},
-     *          summary="Register a new user",
-     *          description="Creates a new user account after validating a Firebase ID token (sent as Bearer in the Authorization header).",
-     *          security={{"bearerAuth": {}}},
-     *          @OA\RequestBody(
-     *              required=true,
-     *              @OA\MediaType(
-     *                  mediaType="multipart/form-data",
-     *                  @OA\Schema(
-     *                      required={"name", "phone", "password", "account_type"},
-     *                      @OA\Property(property="name", type="string", example="Test User"),
-     *                      @OA\Property(property="phone", type="string", example="+966512345678"),
-     *                      @OA\Property(property="password", type="string", format="password", example="password123"),
-     *                      @OA\Property(property="account_type", type="string", enum={"client", "truck_owner"}, example="truck_owner"),
-     *                      @OA\Property(property="identity_image", type="string", format="binary", description="Required if account_type is truck_owner"),
-     *                      @OA\Property(property="driving_license_image", type="string", format="binary", description="Required if account_type is truck_owner")
-     *                  )
-     *              )
-     *          ),
-     *          @OA\Response(
-     *              response=201,
-     *              description="Successful registration",
-     *              @OA\JsonContent(
-     *                  @OA\Property(property="message", type="string", example="User registered successfully."),
-     *                  @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-     *                  @OA\Property(property="token_type", type="string", example="Bearer"),
-     *                  @OA\Property(property="user", ref="#/components/schemas/User")
-     *              )
-     *          ),
-     *          @OA\Response(
-     *              response=401,
-     *              description="Invalid or missing Firebase token",
-     *              @OA\JsonContent(
-     *                  @OA\Property(property="message", type="string", example="Firebase ID Token is missing.")
-     *              )
-     *          ),
-     *          @OA\Response(
-     *              response=403,
-     *              description="Phone number mismatch",
-     *              @OA\JsonContent(
-     *                  @OA\Property(property="message", type="string", example="Phone number does not match the verified token.")
-     *              )
-     *          ),
-     *          @OA\Response(
-     *              response=422,
-     *              description="Validation Error",
-     *              @OA\JsonContent(ref="#/components/schemas/ValidationError")
-     *          )
-     *      )
-     * )
-     */
-    public function register(Request $request)
+public function register(Request $request)
     {
         // 1. التحقق من صحة بيانات الفورم المرسلة
         $validator = Validator::make($request->all(), [
@@ -212,49 +155,6 @@ class AuthController extends Controller
             'user' => $user
         ], 201);
     }
-    /**
-     * @OA\PathItem(
-     *      path="/api/login",
-     *      @OA\Post(
-     *          operationId="loginUser",
-     *          tags={"Authentication"},
-     *          summary="User Login",
-     *          @OA\RequestBody(
-     *              required=true,
-     *              @OA\JsonContent(
-     *                  required={"phone", "password"},
-     *                  @OA\Property(property="phone", type="string", example="+966512345678"),
-     *                  @OA\Property(property="password", type="string", format="password", example="password123"),
-     *              )
-     *          ),
-    *          @OA\Response(
-    *              response=200,
-    *              description="Login successful",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="Login successful"),
-    *                  @OA\Property(property="access_token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-    *                  @OA\Property(property="token_type", type="string", example="Bearer"),
-    *                  @OA\Property(property="user", ref="#/components/schemas/User")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=401,
-    *              description="Unauthorized",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="error", type="string", example="The provided credentials do not match our records.")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=422,
-    *              description="Validation Error",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="phone", type="array", @OA\Items(type="string", example="The phone field is required.")),
-    *                  @OA\Property(property="password", type="array", @OA\Items(type="string", example="The password field is required."))
-    *              )
-    *          )
-     *      )
-     * )
-     */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -281,95 +181,45 @@ class AuthController extends Controller
             'user' => $user
         ], 200);
     }
-    /**
-     * @OA\PathItem(
-     *      path="/api/update-location",
-     *      @OA\Post(
-     *          operationId="updateLocation",
-     *          tags={"User"},
-     *          summary="Update user location",
-     *          description="Updates the authenticated user's location.",
-     *          security={{"sanctum":{}}},
-     *          @OA\RequestBody(
-     *              required=true,
-     *              @OA\JsonContent(
-     *                  required={"location"},
-     *                  @OA\Property(property="location", type="string", example="Riyadh, Saudi Arabia"),
-     *              )
-     *          ),
-    *          @OA\Response(
-    *              response=200,
-    *              description="Location updated successfully",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="message", type="string", example="Location updated successfully")
-    *              )
-    *          ),
-    *          @OA\Response(
-    *              response=422,
-    *              description="Validation Error",
-    *              @OA\JsonContent(
-    *                  @OA\Property(property="location", type="array", @OA\Items(type="string", example="The location field is required."))
-    *              )
-    *          )
-     *      )
-     * )
-     */
-    public function updateLocation(Request $request)
+public function updateLocation(Request $request)
     {
+        // 1. التحقق من صحة المدخلات
         $validator = Validator::make($request->all(), [
-            'location' => 'required|string|max:255',
+            // "sometimes" تعني: تحقق من هذا الحقل فقط إذا كان موجودًا في الطلب
+            'location' => 'sometimes|required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
 
-        $user = $request->user(); // الوصول للمستخدم المصادق عليه
-        $user->location = $request->location;
-        $user->save();
+        // 2. الحصول على المستخدم المصادق عليه
+        $user = $request->user();
+        
+        // 3. التحقق من وجود الحقول وتحديثها
+        
+        // التحقق مما إذا كان حقل 'location' موجودًا في الطلب
+        if ($request->has('location')) {
+            $user->location = $request->location;
+        }
 
-        return response()->json(['message' => 'Location updated successfully'], 200);
+        // التحقق مما إذا كان حقل 'name' موجودًا في الطلب
+        if ($request->has('name')) {
+            $user->name = $request->name;
+        }
+
+        // 4. حفظ التغييرات (فقط إذا كان هناك تغييرات)
+        if ($user->isDirty()) { // isDirty() يتحقق مما إذا تم تغيير أي من سمات النموذج
+            $user->save();
+        }
+
+        return response()->json([
+            'message' => 'User data updated successfully.',
+            'user' => $user->fresh() // إرجاع بيانات المستخدم المحدثة
+        ], 200);
     }
 
-    /**
-     * @OA\PathItem(
-     *      path="/api/forgot-password",
-     *      @OA\Post(
-     *          operationId="forgotPassword",
-     *          tags={"Authentication"},
-     *          summary="Check phone for password reset",
-     *          description="Validates that the provided phone number exists. If it exists, the client should proceed with Firebase OTP verification. This endpoint does not send the OTP.",
-     *          @OA\RequestBody(
-     *              required=true,
-     *              @OA\JsonContent(
-     *                  required={"phone"},
-     *                  @OA\Property(property="phone", type="string", example="+966512345678")
-     *              )
-     *          ),
-     *          @OA\Response(
-     *              response=200,
-     *              description="User found. Proceed with OTP verification.",
-     *              @OA\JsonContent(
-     *                  @OA\Property(property="message", type="string", example="User found. Proceed with OTP verification.")
-     *              )
-     *          ),
-     *          @OA\Response(
-     *              response=404,
-     *              description="User not found",
-     *              @OA\JsonContent(
-     *                  @OA\Property(property="message", type="string", example="This phone number is not registered with us.")
-     *              )
-     *          ),
-     *          @OA\Response(
-     *              response=422,
-     *              description="Validation Error",
-     *              @OA\JsonContent(
-     *                  @OA\Property(property="phone", type="array", @OA\Items(type="string", example="The phone field is required."))
-     *              )
-     *          )
-     *      )
-     * )
-     */
 public function forgotPassword(Request $request)
     {
         // 1. التحقق من أن رقم الهاتف تم إرساله
@@ -392,79 +242,6 @@ public function forgotPassword(Request $request)
             return response()->json(['message' => 'This phone number is not registered with us.'], 404);
         }
     }
-/**
- * @OA\Post(
- *   path="/api/reset-password",
- *   summary="Reset user password using Firebase phone verification",
- *   description="Verifies a Firebase ID token, ensures the token phone_number matches the provided phone, and updates the user's password.",
- *   operationId="resetPasswordWithFirebasePhone",
- *   tags={"Authentication"},
- *   security={{"bearerAuth": {}}},
- *   @OA\RequestBody(
- *     required=true,
- *     @OA\JsonContent(
- *       type="object",
- *       required={"phone","password","password_confirmation"},
- *       @OA\Property(property="phone", type="string", description="E.164 formatted phone number associated with the Firebase user"),
- *       @OA\Property(property="password", type="string", format="password", minLength=8, description="New password (min 8 characters)"),
- *       @OA\Property(property="password_confirmation", type="string", format="password", description="Must match the password field"),
- *       example={
- *         "phone": "+15551234567",
- *         "password": "newStrongP@ssw0rd",
- *         "password_confirmation": "newStrongP@ssw0rd"
- *       }
- *     )
- *   ),
- *   @OA\Response(
- *     response=200,
- *     description="Password has been updated successfully.",
- *     @OA\JsonContent(
- *       type="object",
- *       @OA\Property(property="message", type="string", example="Password has been updated successfully.")
- *     )
- *   ),
- *   @OA\Response(
- *     response=401,
- *     description="Unauthorized - Missing or invalid Firebase ID Token.",
- *     @OA\JsonContent(
- *       type="object",
- *       @OA\Property(property="message", type="string", example="Invalid Firebase ID Token: <reason>")
- *     )
- *   ),
- *   @OA\Response(
- *     response=403,
- *     description="Forbidden - Phone number does not match the verified token.",
- *     @OA\JsonContent(
- *       type="object",
- *       @OA\Property(property="message", type="string", example="Phone number does not match the verified token.")
- *     )
- *   ),
- *   @OA\Response(
- *     response=404,
- *     description="Not Found - User not found.",
- *     @OA\JsonContent(
- *       type="object",
- *       @OA\Property(property="message", type="string", example="User not found.")
- *     )
- *   ),
- *   @OA\Response(
- *     response=422,
- *     description="Unprocessable Entity - Validation errors.",
- *     @OA\JsonContent(
- *       type="object",
- *       @OA\AdditionalProperties(
- *         type="array",
- *         @OA\Items(type="string")
- *       ),
- *       example={
- *         "phone": {"The phone field is required."},
- *         "password": {"The password must be at least 8 characters."},
- *         "password_confirmation": {"The password confirmation does not match."}
- *       }
- *     )
- *   )
- * )
- */
 public function resetPassword(Request $request)
     {
         // 1. التحقق من صحة كلمة المرور الجديدة
