@@ -50,6 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/my-bookings/{booking}/approve', [BookingController::class, 'approve']);
     // رفض حجز (لصاحب الشاحنة)
     Route::post('/my-bookings/{booking}/reject', [BookingController::class, 'reject']);
+    // cancel حجز (كعميل) و الحالة ليست confirmed , completed , rejected , cancelled 
+    Route::post('/my-bookings/{booking}/cancel', [BookingController::class, 'cancel']);
     // ----------------------------------------------------------------------
     Route::get('/sub-categories/{subCategory}/trucks', [SubCategoryTrucksController::class, 'index']);
 

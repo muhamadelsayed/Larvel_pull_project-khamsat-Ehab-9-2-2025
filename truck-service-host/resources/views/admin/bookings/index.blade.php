@@ -20,6 +20,8 @@
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التواريخ</th>
                             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
+
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -31,17 +33,25 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $booking->total_price }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize 
-                                        @if($booking->status == 'pending') bg-yellow-100 text-yellow-800 
-                                        @elseif($booking->status == 'approved' || $booking->status == 'confirmed') bg-green-100 text-green-800 
-                                        @else bg-red-100 text-red-800 @endif">
+                                        @if($booking->status == 'pending') 
+                                            bg-yellow-100 text-yellow-800
+                                        @elseif(in_array($booking->status, ['approved', 'confirmed', 'completed']))
+                                            bg-green-100 text-green-800
+                                        @else {{-- rejected, cancelled --}}
+                                            bg-red-100 text-red-800 
+                                        @endif">
                                         {{ $booking->status }}
                                     </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <a href="{{ route('admin.bookings.status', $booking->id) }}" class="text-indigo-600 hover:text-indigo-900">إدارة الحالة</a>
                                 </td>
                             </tr>
                         @empty
                             <tr><td colspan="5" class="px-6 py-12 text-center">لا توجد حجوزات تطابق هذا الفلتر.</td></tr>
                         @endforelse
                     </tbody>
+                    
                 </table>
             </div>
             <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">

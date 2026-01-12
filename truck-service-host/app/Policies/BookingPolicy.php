@@ -23,4 +23,15 @@ class BookingPolicy
     {
         return $user->id === $booking->truck->user_id && $booking->status === 'pending';
     }
+
+    /**
+     * Determine whether the user (customer) can cancel a booking.
+     * العميل فقط يمكنه إلغاء الحجز قبل تأكيده
+     */
+    public function cancel(User $user, Booking $booking): bool
+    {
+        // يمكن للعميل إلغاء الحجز إذا كان هو من أنشأ الحجز والحالة ليست confirmed , completed , rejected , cancelled
+        
+        return $user->id === $booking->customer_id && ! in_array($booking->status, ['confirmed', 'completed', 'rejected', 'cancelled']);
+    }
 }
