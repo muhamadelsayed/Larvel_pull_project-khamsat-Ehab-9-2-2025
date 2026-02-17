@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use \App\Services\NotificationService;
 
 class UserController extends Controller
 {
@@ -67,9 +68,34 @@ class UserController extends Controller
         return back()->with('success', 'تم حذف المستخدم بنجاح.');
     }
     public function show(User $user)
+    {
+        // تحميل الشاحنات مع علاقاتها لتحسين الأداء
+        $user->load(['trucks.category', 'trucks.subCategory', 'trucks.images']);
+        return view('admin.users.show', compact('user'));
+    }
+    // block and unblock user
+    public function toggleBlock(User $user)
 {
-    // تحميل الشاحنات مع علاقاتها لتحسين الأداء
-    $user->load(['trucks.category', 'trucks.subCategory', 'trucks.images']);
-    return view('admin.users.show', compact('user'));
+    // منع الأدمن من حظر نفسه أو حظر أدمن آخر
+    if ($user->id === auth()->id() || $user->hasRole('admin')) {
+        return back()->with('error', 'لا يمكن حظر هذا الحساب.');
+    }
+
+    if ($user->blocked_at) {
+        $user->update(['blocked_at' => null]);
+        $message = "تم إلغاء حظر المستخدم {$user->name} بنجاح.";
+    } else {
+        $user->update(['blocked_at' => now()]);
+        $message = "تم حظر المستخدم {$user->name} بنجاح.";
+        
+        //  إرسال إشعار له يخبره بأنه تم حظره
+        (new NotificationService())->sendNotification(
+            $user,
+            "تنبيه إداري",
+            "لقد تم حظر حسابك مؤقتاً، يرجى التواصل مع الإدارة."
+        );
+    }
+
+    return back()->with('success', $message);
 }
 }

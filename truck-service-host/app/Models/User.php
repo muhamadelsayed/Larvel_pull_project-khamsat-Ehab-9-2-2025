@@ -5,15 +5,16 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+// use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // <-- الخطوة 1: قم باستيراد هذا
 use Spatie\Permission\Traits\HasRoles; // <-- استيراد
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -30,6 +31,7 @@ class User extends Authenticatable
         'identity_image',
         'driving_license_image',
         'location',
+        'blocked_at',
     ];
 
     /**
@@ -50,26 +52,38 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'blocked_at' => 'datetime',
     ];
      public function trucks(): HasMany
-    {
-        // هذا السطر يخبر Laravel بأن المستخدم الواحد يمكن أن يمتلك العديد من الشاحنات
-        return $this->hasMany(Truck::class);
-    }
+        {
+            // هذا السطر يخبر Laravel بأن المستخدم الواحد يمكن أن يمتلك العديد من الشاحنات
+            return $this->hasMany(Truck::class);
+        }
     public function bookingsAsCustomer(): HasMany
-{
-    return $this->hasMany(Booking::class, 'customer_id');
-}
+        {
+            return $this->hasMany(Booking::class, 'customer_id');
+        }
 
-public function getProfilePhotoUrlAttribute(): string
-{
-    // إذا كان المسار يبدأ بـ http، فإنه رابط خارجي، أعده كما هو.
-    if (Str::startsWith($this->profile_photo_path, 'http')) {
-        return $this->profile_photo_path;
+    public function getProfilePhotoUrlAttribute(): string
+        {
+            // إذا كان المسار يبدأ بـ http، فإنه رابط خارجي، أعده كما هو.
+            if (Str::startsWith($this->profile_photo_path, 'http')) {
+                return $this->profile_photo_path;
+            }
+            
+            // وإلا، فهو مسار داخلي، قم ببناء الرابط باستخدام asset().
+            // هذا سيجعل الكود جاهزًا عندما نسمح للمستخدم برفع صورته الخاصة.
+            return asset('storage/' . $this->profile_photo_path);
+        }
+    public function fcmTokens(): HasMany
+    {
+        return $this->hasMany(FcmToken::class);
     }
-    
-    // وإلا، فهو مسار داخلي، قم ببناء الرابط باستخدام asset().
-    // هذا سيجعل الكود جاهزًا عندما نسمح للمستخدم برفع صورته الخاصة.
-    return asset('storage/' . $this->profile_photo_path);
-}
+
+    public function notifications(): HasMany
+    {
+        // هذا يربط المستخدم بجدول الإشعارات المخصص
+        return $this->hasMany(Notification::class);
+    }
+
 }

@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use \App\Http\Middleware\CheckIfBlocked;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,6 +15,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
         $middleware->append(\App\Http\Middleware\ForceJsonResponse::class);
+    })
+    ->withMiddleware(function (Middleware $middleware) {
+    $middleware->validateCsrfTokens(except: [
+        'api/payment/webhook', // استثناء مسار الويب هوك
+    ]);
+    })
+    ->withMiddleware(function (Middleware $middleware) {
+    $middleware->append(CheckIfBlocked::class);
     })
     ->withProviders([ // <-- إضافة هذا القسم
         \App\Providers\AuthServiceProvider::class,

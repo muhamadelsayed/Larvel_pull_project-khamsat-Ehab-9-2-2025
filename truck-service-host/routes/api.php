@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\CalendarController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\SubCategoryTrucksController;
 use App\Http\Controllers\Api\TruckStatusController;
+use App\Http\Controllers\Api\FcmController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PaymentController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -55,7 +58,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // ----------------------------------------------------------------------
     Route::get('/sub-categories/{subCategory}/trucks', [SubCategoryTrucksController::class, 'index']);
 
+    // -->> مسارات إدارة FCM Tokens <<--
+    // إضافة/تحديث التوكين عند تسجيل الدخول أو فتح التطبيق
+    Route::post('/fcm-token', [FcmController::class, 'updateToken']);
+    // حذف التوكين عند تسجيل الخروج
+    Route::delete('/fcm-token', [FcmController::class, 'deleteToken']);
+
+    // -->> مسار جلب الإشعارات <<--
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    // payment route
+    Route::post('/payment/tap/initiate', [PaymentController::class, 'createTapCharge']);
+
 });
 Route::get('/trucks/{truck}', [TruckController::class, 'show']);
 Route::get('/trucks/{truck}/calendar', [CalendarController::class, 'getBookedDates']);
 
+// مسارات للعودة والويب هوك (يجب أن تكون عامة)
+Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
+Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');

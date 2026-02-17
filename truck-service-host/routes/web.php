@@ -8,66 +8,48 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\SubCategoryController;
 use App\Http\Controllers\Admin\TruckController;
 use App\Http\Controllers\Admin\BookingController;
+use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\DashboardController;
+
+use Illuminate\Support\Facades\Artisan; // <-- استيراد مهم
+use Illuminate\Support\Facades\File;    // <-- استيراد File
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
+| كل مسارات لوحة التحكم محمية بـ 'auth:web' و 'can:view users'
 |
 */
 
-// المسار الرئيسي، يمكن توجيهه لصفحة تسجيل الدخول مباشرة
+// المسار الرئيسي يوجه لصفحة تسجيل الدخول
 Route::get('/', function () {
     return redirect()->route('admin.login');
 });
 
 
 // =========================================================================
-// == مسارات المصادقة للوحة التحكم (تسجيل الدخول والخروج)
+// == مسارات الضيوف والمصادقة (Authentication)
 // =========================================================================
 
-// عرض صفحة تسجيل الدخول
 Route::get('admin/login', [LoginController::class, 'showLoginForm'])->name('admin.login');
-
-// إرسال بيانات تسجيل الدخول
 Route::post('admin/login', [LoginController::class, 'login']);
-
-// تسجيل الخروج
 Route::post('admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
-
-
-// =========================================================================
-// == صفحة "الوصول مرفوض" للمستخدمين العاديين
-// =========================================================================
-
 Route::get('access-denied', function () {
-    // يمكنك هنا إنشاء واجهة view مخصصة وجذابة كما طلبت
     return view('admin.access-denied');
 })->name('access.denied');
+Route::get('admin/register', [RegisterController::class, 'showRegistrationForm'])->name('admin.register');
 
-
-// =========================================================================
-// == مجموعة مسارات لوحة التحكم المحمية
-// =========================================================================
-// - prefix('admin'): يجعل كل المسارات تبدأ بـ /admin
-// - name('admin.'): يجعل كل أسماء المسارات تبدأ بـ admin.
-// - middleware(['auth:web', 'can:view users']): يحمي جميع هذه المسارات
-//   1. 'auth:web': يتأكد أن المستخدم مسجل دخوله (عبر الجلسات Sessions).
-//   2. 'can:view users': يتأكد أن المستخدم لديه صلاحية "view users" (أي أنه مدير أو أدمن).
-// -------------------------------------------------------------------------
 
 // =========================================================================
 // == مجموعة مسارات لوحة التحكم المحمية
 // =========================================================================
 Route::middleware(['auth:web', 'can:view users'])->prefix('admin')->name('admin.')->group(function () {
     
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    })->name('dashboard');
 
     // --- إدارة المستخدمين ---
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -76,9 +58,13 @@ Route::middleware(['auth:web', 'can:view users'])->prefix('admin')->name('admin.
     Route::delete('/users/{user}', [UserController::class, 'destroy'])
         ->name('users.destroy')
         ->middleware('can:delete users');
+    // إرسال إشعار لمستخدم واحد
+    Route::post('/users/{user}/notify', [NotificationController::class, 'sendToUser'])->name('users.notify.send')->middleware('can:manage trucks');
+    // حظر مستخدم
+    Route::patch('/users/{user}/toggle-block', [UserController::class, 'toggleBlock'])->name('users.toggle-block')->middleware('can:promote users');
+
     // --- إدارة التصنيفات ---
     Route::resource('categories', CategoryController::class)->middleware('can:manage categories');
-    // -->> إضافة مسارات التصنيفات الفرعية المتداخلة <<--
     Route::prefix('categories/{category}/sub-categories')
         ->name('sub_categories.')
         ->middleware('can:manage categories')
@@ -90,29 +76,62 @@ Route::middleware(['auth:web', 'can:view users'])->prefix('admin')->name('admin.
             Route::get('/{subCategory}/edit', 'edit')->name('edit');
             Route::patch('/{subCategory}', 'update')->name('update');
             Route::delete('/{subCategory}', 'destroy')->name('destroy');
-        });
-        Route::get('/trucks', [TruckController::class, 'index'])->name('trucks.index')->middleware('can:manage trucks');
-        Route::get('/trucks/{truck}', [TruckController::class, 'show'])->name('trucks.show')->middleware('can:manage trucks');
-        Route::patch('/trucks/{truck}/status', [TruckController::class, 'updateStatus'])->name('trucks.status.update')->middleware('can:manage trucks');
+    });
+    
+    // --- إدارة الشاحنات ---
+    Route::get('/trucks', [TruckController::class, 'index'])->name('trucks.index')->middleware('can:manage trucks');
+    Route::get('/trucks/{truck}', [TruckController::class, 'show'])->name('trucks.show')->middleware('can:manage trucks');
+    Route::patch('/trucks/{truck}/status', [TruckController::class, 'updateStatus'])->name('trucks.status.update')->middleware('can:manage trucks');
 
     // --- إدارة الحجوزات ---
-    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index')->middleware('can:manage trucks'); // نستخدم نفس صلاحية الشاحنات
-    // -->> المسارات الجديدة لإدارة حالة الحجز <<--
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index')->middleware('can:manage trucks');
     Route::get('/bookings/{booking}/status', [BookingController::class, 'showStatusPage'])->name('bookings.status')->middleware('can:manage trucks');
     Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus'])->name('bookings.status.update')->middleware('can:manage trucks');
     
+    // --- إدارة الإشعارات ---
+    Route::get('/notifications/broadcast', [NotificationController::class, 'showBroadcastForm'])->name('notifications.broadcast.form')->middleware('can:manage trucks');
+    Route::post('/notifications/broadcast', [NotificationController::class, 'sendBroadcast'])->name('notifications.broadcast.send')->middleware('can:manage trucks');
+    
+    // الاعدادات
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
 
+
 // =========================================================================
-// == مسارات المصادقة للوحة التحكم
+// == مسارات التنفيذ المؤقتة (***مهمة للنشر بدون SSH، يجب حذفها بعد الاستخدام***)
 // =========================================================================
 
-// عرض صفحة تسجيل الدخول
-Route::get('admin/login', [LoginController::class, 'showLoginForm'])->name('admin.login');
-Route::post('admin/login', [LoginController::class, 'login']);
-Route::post('admin/logout', [LoginController::class, 'logout'])->name('admin.logout');
+// مسار لتنفيذ الترحيلات الجديدة (إنشاء الجداول الجديدة فقط)
+// Route::get('/system/migrate', function () {
+//     try {
+//         Artisan::call('migrate', ['--force' => true]);
+//         return response()->json(['message' => 'Migrations Executed Successfully!'], 200);
+//     } catch (\Exception $e) {
+//         return response()->json(['error' => $e->getMessage()], 500);
+//     }
+// });
 
-Route::get('access-denied', function () {
-    return view('admin.access-denied');
-})->name('access.denied');
-Route::get('admin/register', [RegisterController::class, 'showRegistrationForm'])->name('admin.register');
+// // مسار لتنفيذ الـ Seeders (لإنشاء الأدوار والصلاحيات)
+// Route::get('/system/seed-roles', function () {
+//     try {
+//         Artisan::call('db:seed', ['--class' => 'RolesAndPermissionsSeeder', '--force' => true]);
+//         return response()->json(['message' => 'Roles and Permissions Seeded Successfully!'], 200);
+//     } catch (\Exception $e) {
+//         return response()->json(['error' => $e->getMessage()], 500);
+//     }
+// });
+
+// // مسار لمسح الكاش العام
+// Route::get('/system/clear-cache', function () {
+//    try {
+//         Artisan::call('optimize:clear'); 
+//         return response()->json(['message' => 'Cache Cleared Successfully (View, Route, Config, Compiled)!'], 200);
+//     } catch (\Exception $e) {
+//         return response()->json(['error' => $e->getMessage()], 500);
+//     }
+// });
+
+// https://bull-station.com/system/clear-cache
+//  https://bull-station.com/system/migrate
+//  https://bull-station.com/system/seed-roles

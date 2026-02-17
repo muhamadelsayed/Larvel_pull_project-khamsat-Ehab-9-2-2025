@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use App\Http\Resources\BookingResource;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
+use App\Services\NotificationService; 
+
 
 /**
  * @group Booking Management
@@ -93,6 +95,17 @@ class BookingController extends Controller
             'total_price' => $totalPrice,
             'status' => 'pending',
         ]);
+        // إرسال إشعار لصاحب الشاحنة عند إنشاء حجز جديد
+        $truckOwner = $booking->truck->user;
+        $customerName = $booking->customer->name;
+        
+        $notificationService = new NotificationService();
+        $notificationService->sendNotification(
+            $truckOwner,
+            'طلب حجز جديد!',
+            "لديك طلب حجز جديد من {$customerName} على شاحنة {$booking->truck->name}.",
+            ['type' => 'booking', 'booking_id' => (string)$booking->id] // بيانات مخصصة
+        );
 
         return response()->json([
             'message' => 'Booking request sent successfully. Awaiting owner approval.',
@@ -109,6 +122,16 @@ class BookingController extends Controller
 
             $booking->update(['status' => 'approved']);
 
+        // إرسال الإشعار للعميل
+        $customer = $booking->customer;
+        $notificationService = new NotificationService();
+        $notificationService->sendNotification(
+            $customer,
+            'تمت الموافقة على طلبك!',
+            "تمت الموافقة على طلب حجز شاحنة {$booking->truck->name}.",
+            ['type' => 'booking', 'booking_id' => (string)$booking->id]
+        );
+
             return response()->json([
                 'message' => 'Booking has been approved. Awaiting payment.',
                 'booking' => new BookingResource($booking)
@@ -119,6 +142,16 @@ class BookingController extends Controller
         $this->authorize('reject', $booking);
 
         $booking->update(['status' => 'rejected']);
+        
+        // إرسال الإشعار للعميل
+        $customer = $booking->customer;
+        $notificationService = new NotificationService();
+        $notificationService->sendNotification(
+            $customer,
+            'تم رفض طلبك',
+            "للأسف، تم رفض طلب حجز شاحنة {$booking->truck->name} من قبل المالك.",
+            ['type' => 'booking', 'booking_id' => (string)$booking->id]
+        );
 
         return response()->json([
             'message' => 'Booking has been rejected.',

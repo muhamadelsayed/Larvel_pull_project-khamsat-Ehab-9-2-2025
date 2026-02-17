@@ -39,5 +39,10 @@ return [
             'file' => storage_path('app/' . env('FIREBASE_CREDENTIALS')),
         ],
     ],
+    'tap' => [
+    'secret_key' => env('TAP_SECRET_KEY'),
+    'publishable_key' => env('TAP_PUBLISHABLE_KEY'),
+    'currency' => env('TAP_CURRENCY', 'SAR'),
+],
 
 ];
