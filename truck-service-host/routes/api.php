@@ -22,7 +22,7 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     // ----------------------------------------------------------------------
     Route::post('/update-location', [AuthController::class, 'updateLocation']);
-    // يمكنك إضافة أي مسارات مستقبلية تتطلب مصادقة هنا
+    Route::post('/profile/update', [AuthController::class, 'update_profile']);
     Route::get('/user', function (Request $request) {
         return $request->user();
     });

@@ -185,9 +185,7 @@ public function updateLocation(Request $request)
     {
         // 1. التحقق من صحة المدخلات
         $validator = Validator::make($request->all(), [
-            // "sometimes" تعني: تحقق من هذا الحقل فقط إذا كان موجودًا في الطلب
-            'location' => 'sometimes|required|string|max:255',
-            'name' => 'sometimes|required|string|max:255',
+            'location' => 'required|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -197,22 +195,11 @@ public function updateLocation(Request $request)
         // 2. الحصول على المستخدم المصادق عليه
         $user = $request->user();
         
-        // 3. التحقق من وجود الحقول وتحديثها
+        // 3. تحديث الموقع
+        $user->location = $request->location;
         
-        // التحقق مما إذا كان حقل 'location' موجودًا في الطلب
-        if ($request->has('location')) {
-            $user->location = $request->location;
-        }
-
-        // التحقق مما إذا كان حقل 'name' موجودًا في الطلب
-        if ($request->has('name')) {
-            $user->name = $request->name;
-        }
-
-        // 4. حفظ التغييرات (فقط إذا كان هناك تغييرات)
-        if ($user->isDirty()) { // isDirty() يتحقق مما إذا تم تغيير أي من سمات النموذج
-            $user->save();
-        }
+        // 4. حفظ التغييرات
+        $user->save();
 
         return response()->json([
             'message' => 'User data updated successfully.',
@@ -287,4 +274,64 @@ public function resetPassword(Request $request)
         return response()->json(['message' => 'Password has been updated successfully.'], 200);
     }
 
+    public function update_profile(Request $request)
+    {
+        // 1. الحصول على المستخدم المصادق عليه
+        $user = $request->user();
+
+        // 2. التحقق من صحة المدخلات
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|required|string|max:255',
+            'password' => 'sometimes|required|string|min:8|confirmed',
+            'location' => 'sometimes|required|string|max:255',
+            'driving_license_image' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
+            'identity_image' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
+            'profile_photo' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // 3. تحديث الحقول النصية (إذا كانت موجودة)
+        if ($request->has('name')) {
+            $user->name = $request->name;
+        }
+        if ($request->filled('password')) { // filled() يتحقق من وجوده وأنه ليس فارغًا
+            $user->password = Hash::make($request->password);
+        }
+        if ($request->has('location')) {
+            $user->location = $request->location;
+        }
+
+        // 4. تحديث الصور (إذا كانت موجودة)
+        if ($request->hasFile('driving_license_image')) {
+            // استخدام "public" disk الذي قمنا بإعداده لحفظ الملفات في public/storage
+            $path = $request->file('driving_license_image')->store('driving_licenses', 'public');
+            $user->driving_license_image = $path;
+        }
+        if ($request->hasFile('identity_image')) {
+            $path = $request->file('identity_image')->store('identity_images', 'public');
+            $user->identity_image = $path;
+        }
+        if ($request->hasFile('profile_photo')) {
+            // -->> الإصلاح الرئيسي هنا <<--
+            // الحفظ في العمود الصحيح 'profile_photo_path'
+            $path = $request->file('profile_photo')->store('profile_photos', 'public');
+            $user->profile_photo_path = $path;
+        }
+
+        // 5. الحفظ الذكي (فقط إذا كان هناك تغييرات)
+        if ($user->isDirty()) { // <-- استخدام isDirty() الصحيحة
+            $user->save();
+        }
+
+        // 6. إرجاع استجابة نظيفة ومحدثة
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user' => $user->fresh()->only([ // fresh() لإعادة تحميل النموذج من قاعدة البيانات
+                'id', 'name', 'phone', 'account_type', 'location', 'profile_photo_url'
+            ])
+        ], 200);
+    }
 }
