@@ -14,10 +14,15 @@ class PaymentController extends Controller
 {
     // دالة مساعدة لجلب المفتاح الصحيح بناءً على حالة الإعدادات
     private function getTapSecretKey()
-    {
-        $mode = Setting::where('key', 'tap_payment_mode')->first()->value ?? 'test';
-        return ($mode === 'live') ? env('TAP_LIVE_SECRET_KEY') : env('TAP_TEST_SECRET_KEY');
-    }
+{
+    $mode = Setting::where('key', 'tap_payment_mode')->first()->value ?? 'test';
+    
+    // تأكد أنك أضفت هذه القيم في config/services.php كما فعلنا سابقاً
+    return ($mode === 'live') 
+        ? config('services.tap.live_secret_key') 
+        : config('services.tap.test_secret_key');
+}
+
 
     public function createTapCharge(Request $request)
     {
@@ -32,7 +37,7 @@ class PaymentController extends Controller
 
         $response = Http::withToken($secretKey)->post('https://api.tap.company/v2/charges', [
             'amount' => $booking->total_price,
-            'currency' => env('TAP_CURRENCY', 'SAR'),
+            'currency' => config('services.tap.currency', 'SAR'),
             'customer' => [
                 'first_name' => $booking->customer->name,
                 'email' => $booking->customer->email ?? 'customer@bull-station.com',

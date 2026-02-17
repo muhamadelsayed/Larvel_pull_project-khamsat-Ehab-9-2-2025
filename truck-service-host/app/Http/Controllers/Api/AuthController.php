@@ -171,7 +171,9 @@ public function register(Request $request)
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['error' => 'The provided credentials do not match our records.'], 401);
         }
-        
+         if ($user->blocked_at) {
+        return response()->json(['error' => 'حسابك محظور، لا يمكنك تسجيل الدخول'], 403);
+        }
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([

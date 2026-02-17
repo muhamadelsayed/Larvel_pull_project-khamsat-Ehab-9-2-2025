@@ -40,9 +40,9 @@ return [
         ],
     ],
     'tap' => [
-    'secret_key' => env('TAP_SECRET_KEY'),
-    'publishable_key' => env('TAP_PUBLISHABLE_KEY'),
-    'currency' => env('TAP_CURRENCY', 'SAR'),
+        'live_secret_key' => env('TAP_LIVE_SECRET_KEY'),
+        'test_secret_key' => env('TAP_TEST_SECRET_KEY'),
+        'currency' => env('TAP_CURRENCY', 'SAR'),
 ],
 
 ];

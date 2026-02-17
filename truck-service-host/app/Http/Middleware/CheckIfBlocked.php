@@ -4,31 +4,38 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
 class CheckIfBlocked
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->blocked_at) {
+        // التحقق مما إذا كان المستخدم مسجلاً ومحظوراً
+        $user = $request->user();
+
+        if ($user && $user->blocked_at) {
             
-            // إذا كان الطلب API
-            if ($request->expectsJson()) {
+            // حالة الـ API (بوست مان / فلاتر)
+            if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
-                    'message' => 'Your account is blocked. Please contact support.',
+                    'message' => 'تم حظر حسابك، يرجى التواصل مع الإدارة.',
                     'blocked' => true
                 ], 403);
             }
 
-            // إذا كان طلب ويب (لوحة التحكم مثلاً)
-            Auth::logout();
-            return redirect()->route('admin.login')->withErrors(['phone' => 'هذا الحساب محظور حالياً.']);
+            // حالة الويب (لوحة التحكم)
+            Auth::guard('web')->logout();
+            
+            // تنظيف الجلسة يدوياً لضمان الخروج التام
+            if ($request->hasSession()) {
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+            }
+
+            return redirect()->route('admin.login')->withErrors([
+                'phone' => 'هذا الحساب محظور حالياً، يرجى مراجعة الإدارة.'
+            ]);
         }
 
         return $next($request);

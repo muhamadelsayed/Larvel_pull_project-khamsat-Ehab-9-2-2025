@@ -3,7 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use \App\Http\Middleware\CheckIfBlocked;
+use App\Http\Middleware\CheckIfBlocked;
+use App\Http\Middleware\ForceJsonResponse;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,18 +14,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // 1. إعادة توجيه الضيوف لصفحة الدخول
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
-        $middleware->append(\App\Http\Middleware\ForceJsonResponse::class);
+
+        // 2. استثناء الويب هوك من حماية CSRF
+        $middleware->validateCsrfTokens(except: [
+            'api/payment/webhook',
+        ]);
+
+        // 3. إجبار الـ API على إرجاع JSON دائماً
+        $middleware->append(ForceJsonResponse::class);
+
+        // 4. تشغيل فحص الحظر على جميع الطلبات (Web & API)
+        // وضعه هنا يضمن تشغيله بعد التعرف على المستخدم
+        $middleware->append(CheckIfBlocked::class);
     })
-    ->withMiddleware(function (Middleware $middleware) {
-    $middleware->validateCsrfTokens(except: [
-        'api/payment/webhook', // استثناء مسار الويب هوك
-    ]);
-    })
-    ->withMiddleware(function (Middleware $middleware) {
-    $middleware->append(CheckIfBlocked::class);
-    })
-    ->withProviders([ // <-- إضافة هذا القسم
+    ->withProviders([
         \App\Providers\AuthServiceProvider::class,
     ])
     ->withExceptions(function (Exceptions $exceptions) {
