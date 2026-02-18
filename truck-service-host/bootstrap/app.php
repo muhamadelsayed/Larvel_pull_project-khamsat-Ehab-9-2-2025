@@ -14,20 +14,23 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // 1. إعادة توجيه الضيوف لصفحة الدخول
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
 
-        // 2. استثناء الويب هوك من حماية CSRF
         $middleware->validateCsrfTokens(except: [
             'api/payment/webhook',
         ]);
 
-        // 3. إجبار الـ API على إرجاع JSON دائماً
+        // إجبار JSON
         $middleware->append(ForceJsonResponse::class);
 
-        // 4. تشغيل فحص الحظر على جميع الطلبات (Web & API)
-        // وضعه هنا يضمن تشغيله بعد التعرف على المستخدم
-        $middleware->append(CheckIfBlocked::class);
+        // جعل ميدل وير الحظر يعمل بعد تعريف الجلسات والتوكينات
+        $middleware->alias([
+            'check.blocked' => CheckIfBlocked::class,
+        ]);
+
+        // إضافته للمجموعات لضمان العمل على المستخدمين المسجلين
+        $middleware->appendToGroup('api', 'check.blocked');
+        $middleware->appendToGroup('web', 'check.blocked');
     })
     ->withProviders([
         \App\Providers\AuthServiceProvider::class,
