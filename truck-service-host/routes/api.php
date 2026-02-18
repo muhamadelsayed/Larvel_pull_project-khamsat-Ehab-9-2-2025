@@ -68,6 +68,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     // payment route
     Route::post('/payment/tap/initiate', [PaymentController::class, 'createTapCharge']);
+    // مسار للتحقق من حالة الدفع لحجز معين (يمكن للعميل أو المالك أو الأدمن استخدامه)
+    Route::get('/bookings/{booking}/verify-payment', [PaymentController::class, 'verifyBookingPayment'])->middleware('auth:sanctum');
 
 });
 Route::get('/trucks/{truck}', [TruckController::class, 'show']);

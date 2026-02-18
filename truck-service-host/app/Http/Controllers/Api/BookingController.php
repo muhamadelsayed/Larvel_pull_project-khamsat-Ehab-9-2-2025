@@ -68,6 +68,10 @@ class BookingController extends Controller
         ]);
 
         $truck = Truck::findOrFail($validated['truck_id']);
+        // check if active truck
+        if ($truck->status !== 'active') {
+            return response()->json(['message' => 'عذراً، هذه الشاحنة غير متاحة للحجز حالياً.'], 403);
+        }
         $start = Carbon::parse($validated['start_datetime']);
         $end = Carbon::parse($validated['end_datetime']);
 

@@ -1,0 +1,1171 @@
+{
+  "info": {
+    "_postman_id": "1bf79d55-4b4f-490b-a3da-f5802150121a",
+    "name": "Truck Service API - Mohammed Sleem",
+    "description": "Complete API collection for the Truck Service application.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "36432142"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register (via Firebase)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer YOUR_FIREBASE_ID_TOKEN",
+                "description": "The ID Token received from Firebase after phone verification."
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Test Owner",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+966512345678",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                },
+                {
+                  "key": "account_type",
+                  "value": "truck_owner",
+                  "type": "text",
+                  "description": "Can be 'client' or 'truck_owner'"
+                },
+                {
+                  "key": "identity_image",
+                  "type": "file",
+                  "value": null
+                },
+                {
+                  "key": "driving_license_image",
+                  "type": "file",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"+966555555558\",\n    \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login local",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"+201552739347\",\n    \"password\": \"12345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password (Step 1: Check Phone)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"+966512345678\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "forgot-password"
+              ]
+            },
+            "description": "Checks if the phone number exists in the database. If successful, the frontend proceeds with Firebase OTP flow."
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password (Step 2: Verify & Update)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{firebaseIdToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"+201552739347\",\n    \"password\": \"123456789\",\n    \"password_confirmation\": \"123456789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reset-password"
+              ]
+            },
+            "description": "Sends the new password along with the Firebase ID Token (as Bearer token) received after successful OTP verification."
+          },
+          "response": []
+        },
+        {
+          "name": "Update location",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"location\":\"test123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/update-location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "update-location"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "new name",
+                  "description": "not required",
+                  "type": "text",
+                  "uuid": "af284808-85f5-4ac6-8276-860776941114"
+                },
+                {
+                  "key": "password",
+                  "value": "12345678",
+                  "description": "not required",
+                  "type": "text",
+                  "uuid": "15e38f08-2c36-4659-81e6-387d6112c94e"
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "12345678",
+                  "description": "required if changing password",
+                  "type": "text",
+                  "uuid": "a7a13bc2-a74e-45a8-b051-0addec6eebed"
+                },
+                {
+                  "key": "location",
+                  "value": "new location",
+                  "description": "not required",
+                  "type": "text",
+                  "uuid": "3ed8ccb2-96f5-4a80-bf3c-8b3ea751cf15"
+                },
+                {
+                  "key": "profile_photo",
+                  "description": "not required",
+                  "type": "file",
+                  "uuid": "ffa0e871-d3c1-4c40-9e1d-649419960668",
+                  "src": "/C:/Users/smart/Downloads/manthur logo.jpg"
+                },
+                {
+                  "key": "driving_license_image",
+                  "description": "not required but make sure to show this only for truck owner",
+                  "type": "file",
+                  "uuid": "658d2ed8-1d6e-4a39-a5c4-665edf80f5e3",
+                  "src": "/C:/Users/smart/Downloads/manthur logo.jpg"
+                },
+                {
+                  "key": "identity_image",
+                  "description": "not required but make sure to show this only for truck owner",
+                  "type": "file",
+                  "uuid": "ad293994-51de-4341-8055-4eb865c14a84",
+                  "src": "/C:/Users/smart/Downloads/manthur logo.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Public Data",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Truck Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer 54|2xwdDLkI7A7pCDILfHWXHWqFfzOmuL0kVpcPusig8df51d1f",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/trucks/26",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trucks",
+                "26"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Local Get Single Truck Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "bearer 54|2xwdDLkI7A7pCDILfHWXHWqFfzOmuL0kVpcPusig8df51d1f",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/trucks/26",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trucks",
+                "26"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Truck Calendar (Booked Dates)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trucks/29/calendar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trucks",
+                "29",
+                "calendar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Authenticated User Actions",
+      "item": [
+        {
+          "name": "Get Another User's Trucks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/5/trucks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "5",
+                "trucks"
+              ]
+            },
+            "description": "Gets all *active* trucks for a specific user ID."
+          },
+          "response": []
+        },
+        {
+          "name": "List All Active Trucks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/trucks?page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trucks"
+              ],
+              "query": [
+                {
+                  "key": "sub_category_id",
+                  "value": "2",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "price_asc",
+                  "type": "text",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "Gets all *active* trucks for a specific user ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sup category trucks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "",
+                "value": "",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/sub-categories/1/trucks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sub-categories",
+                "1",
+                "trucks"
+              ]
+            },
+            "description": "Gets all *active* trucks for a specific user ID."
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "4. Truck Owner Actions",
+      "item": [
+        {
+          "name": "Create Truck",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "category_id",
+                  "value": "5",
+                  "type": "text"
+                },
+                {
+                  "key": "sub_category_id",
+                  "value": "2",
+                  "type": "text"
+                },
+                {
+                  "key": "year_of_manufacture",
+                  "value": "2024",
+                  "type": "text"
+                },
+                {
+                  "key": "size",
+                  "value": "30 Ton",
+                  "type": "text"
+                },
+                {
+                  "key": "model",
+                  "value": "Komatsu PC200",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Brand new model with latest features.",
+                  "type": "text"
+                },
+                {
+                  "key": "price_per_day",
+                  "value": "1800",
+                  "type": "text"
+                },
+                {
+                  "key": "price_per_hour",
+                  "value": "250",
+                  "type": "text"
+                },
+                {
+                  "key": "work_start_time",
+                  "value": "07:00",
+                  "type": "text"
+                },
+                {
+                  "key": "work_end_time",
+                  "value": "19:00",
+                  "type": "text"
+                },
+                {
+                  "key": "pickup_location",
+                  "value": "Dammam Port",
+                  "type": "text"
+                },
+                {
+                  "key": "delivery_available",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "delivery_price",
+                  "value": "400",
+                  "type": "text"
+                },
+                {
+                  "key": "images[]",
+                  "type": "file",
+                  "src": "/C:/Users/smart/Pictures/TREE/2531432.jpg"
+                },
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": "/C:/Users/smart/Documents/محمد/assam/ZafatQueen/uploads/file-1756196975125.mp4"
+                },
+                {
+                  "key": "name",
+                  "value": "name test",
+                  "type": "text",
+                  "uuid": "7652eee1-8e8a-44ad-8454-29f74b933c40"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trucks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trucks"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Truck",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "_method",
+                  "value": "PATCH",
+                  "type": "text",
+                  "description": "Required when sending files with PATCH method.",
+                  "disabled": true
+                },
+                {
+                  "key": "price_per_day",
+                  "value": "1950",
+                  "type": "text",
+                  "description": "Example: updating only the price."
+                },
+                {
+                  "key": "description",
+                  "value": "Updated description with new details.",
+                  "type": "text"
+                },
+                {
+                  "key": "category_id",
+                  "value": "5",
+                  "type": "text",
+                  "uuid": "ae610756-283d-46a8-af5b-1c24617b24e5"
+                },
+                {
+                  "key": "sub_category_id",
+                  "value": "2",
+                  "type": "text",
+                  "uuid": "dcf2ff1c-fa01-4e17-a98d-9a48333d0983"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/trucks/29",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trucks",
+                "29"
+              ]
+            },
+            "description": "To send files (images/video), send as POST and add a `_method` field with value `PATCH`."
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate Truck",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/my-trucks/11/deactivate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "my-trucks",
+                "11",
+                "deactivate"
+              ]
+            },
+            "description": "To send files (images/video), send as POST and add a `_method` field with value `PATCH`."
+          },
+          "response": []
+        },
+        {
+          "name": "Request Activation",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/my-trucks/11/request-activation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "my-trucks",
+                "11",
+                "request-activation"
+              ]
+            },
+            "description": "To send files (images/video), send as POST and add a `_method` field with value `PATCH`."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Truck",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/trucks/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "trucks",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List My Trucks (with Filters)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/my-trucks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "my-trucks"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "(Optional) Filter by status: pending, active, inactive",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "latest",
+                  "description": "(Optional) Sort by: latest, oldest",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "5. Booking Actions",
+      "item": [
+        {
+          "name": "Create Booking Request (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"truck_id\": 29,\n    \"start_datetime\": \"2026-10-25 09:00:00\",\n    \"end_datetime\": \"2026-10-27 17:00:00\",\n    \"days\": 3,\n    \"hours\": 0,\n    \"needs_delivery\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Local Create Booking Request (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"truck_id\": 29,\n    \"start_datetime\": \"2026-10-25 09:00:00\",\n    \"end_datetime\": \"2026-10-27 17:00:00\",\n    \"days\": 3,\n    \"hours\": 0,\n    \"needs_delivery\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List My Bookings (Incoming/Outgoing)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/my-bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "my-bookings"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "incoming",
+                  "description": "(Optional) Filter by type: incoming (requests on my trucks), outgoing (my requests)",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "(Optional) Filter by status",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Booking (Truck Owner)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/my-bookings/31/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "my-bookings",
+                "31",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Booking (Truck Owner)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/my-bookings/1/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "my-bookings",
+                "1",
+                "reject"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Booking (User)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/my-bookings/1/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "my-bookings",
+                "1",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Initiate Tap Payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"booking_id\": 19\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payment/tap/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payment",
+                "tap",
+                "initiate"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "6. FCM & Profile Management",
+      "item": [
+        {
+          "name": "Update FCM Token (POST /fcm-token)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fcm_token\": \"fcm_token_for_device_123456789_A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/fcm-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fcm-token"
+              ]
+            },
+            "description": "Registers or updates the FCM token for the current user's device."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Profile Data (POST /profile/update)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "New Name Updated",
+                  "type": "text",
+                  "description": "Optional: Update the user's name."
+                },
+                {
+                  "key": "location",
+                  "value": "New Riyadh Location",
+                  "type": "text",
+                  "description": "Optional: Update the user's location."
+                },
+                {
+                  "key": "password",
+                  "value": "newpassword123",
+                  "type": "text",
+                  "description": "Optional: Update the password. Requires 'password_confirmation'."
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "newpassword123",
+                  "type": "text",
+                  "description": "Optional: Confirmation for the new password."
+                },
+                {
+                  "key": "profile_photo",
+                  "type": "file",
+                  "description": "Optional: New profile photo file. Sending this will override the default image.",
+                  "value": null
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/update",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "update"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Notifications (GET /notifications)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications?page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "For pagination."
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    }
+  ]
+}

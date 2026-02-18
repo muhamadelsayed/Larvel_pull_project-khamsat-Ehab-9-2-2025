@@ -23,7 +23,9 @@ class DashboardController extends Controller
 
         // 1. إحصائيات سريعة (الإيرادات الحقيقية فقط)
         $stats = [
-            'total_revenue' => Booking::where($realPaymentQuery)->sum('total_price'),
+            'total_revenue' => Booking::where('status', 'confirmed')
+                              ->where('payment_mode', 'live') // <-- الفلتر الجديد
+                              ->sum('total_price'),
             'total_bookings' => Booking::count(),
             'pending_trucks_count' => Truck::where('status', 'pending')->count(),
             'active_users' => User::count(),
@@ -43,15 +45,24 @@ class DashboardController extends Controller
 
         // 6. كبار العملاء (الذين دفعوا مبالغ حقيقية فقط)
         $topCustomers = User::withSum(['bookingsAsCustomer' => function($query) use ($realPaymentQuery) {
+        // تطبيق الشروط الخاصة بالحجوزات المؤكدة والدفع المباشر
+        $query->where('status', 'confirmed')
+              ->where('payment_mode', 'live');
+        
+        // إذا كان هناك منطق إضافي في المتغير الممرر
+        if (is_callable($realPaymentQuery)) {
             $realPaymentQuery($query);
+        }
         }], 'total_price')
+        ->whereHas('bookingsAsCustomer', function($query) {
+            // هذا الجزء يحل محل الـ filter ويقوم بالتصفية في قاعدة البيانات مباشرة (أداء أسرع)
+            $query->where('status', 'confirmed')
+                ->where('payment_mode', 'live')
+                ->where('total_price', '>', 0);
+        })
         ->orderByDesc('bookings_as_customer_sum_total_price')
         ->take(5)
-        ->get()
-        ->filter(function($user) {
-            // استبعاد من لم يدفع مبالغ حقيقية إطلاقاً
-            return $user->bookings_as_customer_sum_total_price > 0;
-        });
+        ->get();
 
         // 7. بيانات الرسم البياني
         $chartData = $this->getChartData();

@@ -19,6 +19,7 @@ class Booking extends Model
         'status',
         'tap_charge_id',   // الحقل الجديد لربط عملية الدفع
         'payment_method',  // الحقل الجديد لتخزين وسيلة الدفع (مدى، فيزا، الخ)
+        'payment_mode',    // الحقل الجديد لتخزين وضع الدفع (test أو live)
     ];
 
     protected $casts = [

@@ -51,7 +51,13 @@ class PaymentController extends Controller
 
         if ($response->successful()) {
             $data = $response->json();
-            $booking->update(['tap_charge_id' => $data['id']]);
+            $mode = Setting::where('key', 'tap_payment_mode')->first()->value ?? 'test';
+
+            // تحديث الحجز بوضع الدفع قبل الذهاب لـ Tap
+            $booking->update([
+                'payment_mode' => $mode,
+                'tap_charge_id' => $data['id'] // الـ ID القادم من Tap
+            ]);
             return response()->json(['payment_url' => $data['transaction']['url']]);
         }
 
@@ -121,5 +127,40 @@ class PaymentController extends Controller
     }
 
     return response()->json(['status' => 'verified'], 200);
+}
+
+public function verifyBookingPayment(Booking $booking)
+{
+    // السماح فقط للعميل صاحب الحجز أو المالك أو الأدمن بالتحقق
+    if (auth()->id() !== $booking->customer_id && auth()->id() !== $booking->truck->user_id && !auth()->user()->hasRole('admin')) {
+        return response()->json(['message' => 'غير مصرح لك بالدخول'], 403);
+    }
+
+    if (!$booking->tap_charge_id) {
+        return response()->json(['message' => 'لم تبدأ عملية دفع لهذا الحجز بعد', 'paid' => false], 400);
+    }
+
+    // إذا كان الحجز مؤكداً لدينا بالفعل
+    if ($booking->status === 'confirmed') {
+        return response()->json(['message' => 'تم تأكيد الدفع مسبقاً', 'paid' => true]);
+    }
+
+    // إذا لم يكن مؤكداً، نسأل سيرفر Tap مباشرة
+    $secretKey = $this->getTapSecretKey(); // تستخدم mode الحجز المخزن
+    $response = Http::withToken($secretKey)->get("https://api.tap.company/v2/charges/{$booking->tap_charge_id}");
+
+    if ($response->successful()) {
+        $tapData = $response->json();
+        if ($tapData['status'] === 'CAPTURED') {
+            // تحديث قاعدة البيانات فوراً لأننا تأكدنا من المصدر
+            $booking->update([
+                'status' => 'confirmed',
+                'payment_method' => $tapData['source']['payment_method'] ?? 'unknown'
+            ]);
+            return response()->json(['message' => 'تم التحقق والتدفيع بنجاح', 'paid' => true]);
+        }
+    }
+
+    return response()->json(['message' => 'لم يتم الدفع بعد أو فشلت العملية', 'paid' => false]);
 }
 }
