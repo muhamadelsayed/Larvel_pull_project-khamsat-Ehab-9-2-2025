@@ -95,7 +95,11 @@ Route::middleware(['auth:web', 'can:view users'])->prefix('admin')->name('admin.
     // الاعدادات
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
-});
+    Route::post('/settings/policies', [SettingController::class, 'storePolicy'])->name('policies.store');
+Route::delete('/settings/policies/{policy}', [SettingController::class, 'destroyPolicy'])->name('policies.destroy');
+Route::patch('/settings/policies/{policy}', [App\Http\Controllers\Admin\SettingController::class, 'updatePolicy'])->name('admin.policies.update');
+
+    });
 
 Route::get('/system/run-booking-completion', function () {
     try {
@@ -126,6 +130,9 @@ Route::get('/system/schedule-list', function () {
         return $e->getMessage();
     }
 });
+
+Route::get('/policies', [SettingController::class, 'publicPolicies'])->name('policies.public');
+
 
 
 // =========================================================================
