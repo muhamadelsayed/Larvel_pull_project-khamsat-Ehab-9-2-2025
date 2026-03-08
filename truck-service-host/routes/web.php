@@ -97,6 +97,36 @@ Route::middleware(['auth:web', 'can:view users'])->prefix('admin')->name('admin.
     Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
 });
 
+Route::get('/system/run-booking-completion', function () {
+    try {
+        // تنفيذ الأمر البرمجي
+        Artisan::call('bookings:complete');
+        
+        $output = Artisan::output();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'تم تشغيل مهمة إكمال الحجوزات بنجاح.',
+            'details' => $output
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
+// 2. فحص حالة الجدولة (Schedule List) - لرؤية متى ستعمل المهمة القادمة
+Route::get('/system/schedule-list', function () {
+    try {
+        Artisan::call('schedule:list');
+        return "<pre>" . Artisan::output() . "</pre>";
+    } catch (\Exception $e) {
+        return $e->getMessage();
+    }
+});
+
 
 // =========================================================================
 // == مسارات التنفيذ المؤقتة (***مهمة للنشر بدون SSH، يجب حذفها بعد الاستخدام***)
