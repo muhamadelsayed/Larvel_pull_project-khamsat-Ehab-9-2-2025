@@ -5,71 +5,93 @@ namespace App\Services;
 use App\Models\User;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification as FirebaseNotification;
-use Kreait\Laravel\Firebase\Facades\Firebase; // استخدام الواجهة (Facade)
+use Kreait\Firebase\Messaging\AndroidConfig; // استيراد إعدادات أندرويد
+use Kreait\Firebase\Messaging\ApnsConfig;    // استيراد إعدادات آيفون
+use Kreait\Laravel\Firebase\Facades\Firebase;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class NotificationService
 {
-    /**
-     * إرسال إشعار إلى مستخدم معين (لجميع أجهزته).
-     *
-     * @param User $recipient المستقبِل
-     * @param string $title عنوان الإشعار
-     * @param string $body نص الإشعار
-     * @param array|null $data بيانات إضافية (مثل booking_id)
-     */
     public function sendNotification(User $recipient, string $title, string $body, array $data = null): void
     {
-        // 1. جلب جميع توكينات FCM النشطة للمستخدم
-        $tokens = $recipient->fcmTokens()->pluck('token')->all();
+        Log::info("--- بدء عملية إرسال إشعار فورية للمستخدم ID: {$recipient->id} ---");
 
-        // 2. لا تفعل شيئًا إذا لم يكن لدى المستخدم أي توكينات مسجلة
-        if (empty($tokens)) {
-            return;
+        // 1. حفظ في قاعدة البيانات
+        try {
+            $recipient->notifications()->create([
+                'title' => $title,
+                'body' => $body,
+                'data' => $data,
+            ]);
+        } catch (Throwable $dbError) {
+            Log::error("فشل حفظ الإشعار داخلياً: " . $dbError->getMessage());
         }
 
-        // 3. حفظ الإشعار في قاعدة البيانات لدينا كسجل دائم
-        $recipient->notifications()->create([
-            'title' => $title,
-            'body' => $body,
-            'data' => $data,
+        // 2. جلب التوكينات
+        $tokens = $recipient->fcmTokens()->pluck('token')->all();
+        if (empty($tokens)) return;
+
+        // 3. بناء إعدادات الأولوية القصوى (High Priority)
+        
+        // أندرويد: أولوية مرتفعة وصوت افتراضي
+        $androidConfig = AndroidConfig::fromArray([
+            'priority' => 'high',
+            'notification' => [
+                'sound' => 'default',
+                'color' => '#4f46e5',
+            ],
         ]);
 
-        // 4. بناء رسالة Firebase
-        $notification = FirebaseNotification::create($title, $body);
-        
-        // 5. إرسال الإشعار إلى جميع الأجهزة
-        // sendMulticast هو الأفضل لإرسال نفس الرسالة لعدة توكينات
-        $message = CloudMessage::new()->withNotification($notification);
-        if ($data) {
-            // تحويل كل قيم البيانات إلى نص (متطلب من FCM)
-            $stringData = array_map('strval', $data);
-            $message = $message->withData($stringData);
-        }
+        // آيفون: أولوية 10 (فورية) وصوت
+        $apnsConfig = ApnsConfig::fromArray([
+            'headers' => [
+                'apns-priority' => '10', // 10 تعني فوراً، 5 تعني لتوفير البطارية
+            ],
+            'payload' => [
+                'aps' => [
+                    'sound' => 'default',
+                    'content-available' => 1,
+                ],
+            ],
+        ]);
 
+        // 4. بناء الرسالة ودمج الإعدادات
         try {
-            $report = Firebase::messaging()->sendMulticast($message, $tokens);
+            $notification = FirebaseNotification::create($title, $body);
+            $message = CloudMessage::new()
+                ->withNotification($notification)
+                ->withAndroidConfig($androidConfig) // تفعيل الأولوية لأندرويد
+                ->withApnsConfig($apnsConfig);      // تفعيل الأولوية لآيفون
             
-            // (اختياري) التعامل مع التوكينات غير الصالحة
-            if ($report->hasFailures()) {
-                $this->handleFailedTokens($report, $tokens);
+            if ($data) {
+                $stringData = array_map(function($value) {
+                    return is_null($value) ? "" : (string)$value;
+                }, $data);
+                $message = $message->withData($stringData);
             }
+
+            // 5. الإرسال
+            $report = Firebase::messaging()->sendMulticast($message, $tokens);
+            Log::info("تم الإرسال بأولوية مرتفعة: " . $report->successes()->count() . " نجاح.");
+
+            if ($report->hasFailures()) {
+                $this->handleFailedTokens($report);
+            }
+
         } catch (Throwable $e) {
-            // (اختياري) سجل أي أخطاء فادحة تحدث أثناء الإرسال
-            \Log::error('FCM Multicast Send Error: ' . $e->getMessage());
+            Log::error("خطأ FCM: " . $e->getMessage());
         }
     }
 
-    /**
-     * (اختياري) دالة لتنظيف التوكينات غير الصالحة من قاعدة البيانات.
-     */
-    private function handleFailedTokens($report, $tokens)
+    private function handleFailedTokens($report)
     {
-        $failedTokens = $report->invalidTokens();
-
-        if (!empty($failedTokens)) {
-            \App\Models\FcmToken::whereIn('token', $failedTokens)->delete();
-            \Log::info('Deleted invalid FCM tokens: ' . implode(', ', $failedTokens));
+        foreach ($report->failures()->getItems() as $failure) {
+            $reason = $failure->error()->getMessage();
+            $token = $failure->target()->value();
+            if (str_contains($reason, 'not a valid') || str_contains($reason, 'not registered')) {
+                \App\Models\FcmToken::where('token', $token)->delete();
+            }
         }
     }
 }

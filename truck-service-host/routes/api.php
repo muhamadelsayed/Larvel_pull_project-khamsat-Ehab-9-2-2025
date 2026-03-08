@@ -55,6 +55,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/my-bookings/{booking}/reject', [BookingController::class, 'reject']);
     // cancel حجز (كعميل) و الحالة ليست confirmed , completed , rejected , cancelled 
     Route::post('/my-bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+    // مسار للتحقق من حالة الدفع لحجز معين (يمكن للعميل أو المالك أو الأدمن استخدامه)
+    Route::get('/bookings/{booking}/verify-payment', [PaymentController::class, 'verifyBookingPayment'])->middleware('auth:sanctum');
     // ----------------------------------------------------------------------
     Route::get('/sub-categories/{subCategory}/trucks', [SubCategoryTrucksController::class, 'index']);
 
@@ -68,8 +70,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     // payment route
     Route::post('/payment/tap/initiate', [PaymentController::class, 'createTapCharge']);
-    // مسار للتحقق من حالة الدفع لحجز معين (يمكن للعميل أو المالك أو الأدمن استخدامه)
-    Route::get('/bookings/{booking}/verify-payment', [PaymentController::class, 'verifyBookingPayment'])->middleware('auth:sanctum');
 
 });
 Route::get('/trucks/{truck}', [TruckController::class, 'show']);
