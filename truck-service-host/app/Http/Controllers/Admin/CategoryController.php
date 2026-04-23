@@ -32,8 +32,8 @@ class CategoryController extends Controller
         }
         // الحفظ
         if ($request->hasFile('map_icon')) {
-            $validated['map_icon'] = $request->file('map_icon')->store('categories/map_icons', 'public');
-        }
+        $validated['map_icon'] = $request->file('map_icon')->store('categories/map_icons', 'public');
+    }
 
         Category::create($validated);
         return redirect()->route('admin.categories.index')->with('success', 'تم إنشاء التصنيف بنجاح.');
@@ -60,13 +60,14 @@ class CategoryController extends Controller
             $validated['icon'] = $request->file('icon')->store('categories', 'public');
         }
                 // الحفظ
-        if ($request->hasFile('map_icon')) {
-            // حذف الأيقونة القديمة إذا وجدت
-            if ($category->map_icon) {
-                Storage::disk('public')->delete($category->map_icon);
-            }
-            $category->map_icon = $request->file('map_icon')->store('categories/map_icons', 'public');
+           if ($request->hasFile('map_icon')) {
+        // حذف القديم
+        if ($category->map_icon) {
+            \Storage::disk('public')->delete($category->map_icon);
         }
+        // تخزين الجديد وحفظ "المسار" فقط في المصفوفة
+        $validated['map_icon'] = $request->file('map_icon')->store('categories/map_icons', 'public');
+    }
 
         $category->update($validated);
         return redirect()->route('admin.categories.index')->with('success', 'تم تحديث التصنيف بنجاح.');
