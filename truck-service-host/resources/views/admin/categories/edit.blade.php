@@ -32,6 +32,11 @@
             <div class="flex justify-end pt-4">
                 <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">تحديث</button>
             </div>
+            <div class="mt-4">
+                <label class="block text-sm font-bold mb-2">أيقونة الخريطة (Map Pin)</label>
+                <input type="file" name="map_icon" class="w-full border rounded-lg px-3 py-2">
+                <p class="text-xs text-gray-500 mt-1">يفضل أن تكون بصيغة PNG شفافة وبحجم 64x64 بكسل.</p>
+            </div>
         </form>
     </div>
 </x-admin.layout>

@@ -8,7 +8,7 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'icon'];
+    protected $fillable = ['name', 'icon', 'map_icon'];
     public function subCategories(): HasMany
     {
         return $this->hasMany(SubCategory::class);

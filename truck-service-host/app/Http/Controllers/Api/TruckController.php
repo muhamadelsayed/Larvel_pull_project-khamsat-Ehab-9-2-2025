@@ -74,161 +74,197 @@ class TruckController extends Controller
         return UserTruckResource::collection($trucks);
     }
    
-    public function show(Truck $truck)
-{
-    // 1. التحقق مما إذا كان هناك مستخدم مسجل دخوله
-    $user = auth('sanctum')->user();
+        public function show(Truck $truck)
+    {
+        // 1. التحقق مما إذا كان هناك مستخدم مسجل دخوله
+        $user = auth('sanctum')->user();
 
-    // 2. تحديد ما إذا كان المستخدم الحالي هو مالك الشاحنة
-    $isOwner = $user && $user->id === $truck->user_id;
+        // 2. تحديد ما إذا كان المستخدم الحالي هو مالك الشاحنة
+        $isOwner = $user && $user->id === $truck->user_id;
 
-    // 3. تطبيق منطق الصلاحية
-    // اسمح بالوصول إذا كانت الشاحنة "نشطة" (لأي شخص)
-    // أو إذا كان المستخدم الحالي هو "المالك" (لأي حالة)
-    if ($truck->status === 'active' || $isOwner) {
-        // إذا كان الوصول مسموحًا، قم بتحميل كل العلاقات وأرجع البيانات
-        return new TruckResource($truck->load('user', 'category', 'subCategory', 'images'));
+        // 3. تطبيق منطق الصلاحية
+        // اسمح بالوصول إذا كانت الشاحنة "نشطة" (لأي شخص)
+        // أو إذا كان المستخدم الحالي هو "المالك" (لأي حالة)
+        if ($truck->status === 'active' || $isOwner) {
+            // إذا كان الوصول مسموحًا، قم بتحميل كل العلاقات وأرجع البيانات
+            return new TruckResource($truck->load('user', 'category', 'subCategory', 'images'));
+        }
+
+        // 4. إذا لم تتحقق الشروط، أرجع خطأ "غير موجود"
+        return response()->json(['message' => 'Truck not found or you do not have permission to view it.'], 404);
     }
 
-    // 4. إذا لم تتحقق الشروط، أرجع خطأ "غير موجود"
-    return response()->json(['message' => 'Truck not found or you do not have permission to view it.'], 404);
-}
 
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'sub_category_id' => 'required|exists:sub_categories,id',
+            'year_of_manufacture' => 'required|digits:4',
+            'size' => 'required|string',
+            'model' => 'required|string',
+            'description' => 'required|string',
+            'additional_features' => 'nullable|string',
+            'images' => 'nullable|array|max:3',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
+            'video' => 'nullable|mimes:mp4,mov,avi|max:10240', // 10MB
+            'price_per_day' => 'required|numeric',
+            'price_per_hour' => 'required|numeric',
+            'work_start_time' => 'required|date_format:H:i',
+            'work_end_time' => 'required|date_format:H:i',
+            'pickup_location' => 'required|string',
+            'latitude' => 'sometimes|required|numeric', // تحديث إحداثيات
+            'longitude' => 'sometimes|required|numeric', // تحديث إحداثيات
+            'delivery_available' => 'required|boolean',
+            'delivery_price' => 'nullable|numeric|required_if:delivery_available,true',
+        ]);
 
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'category_id' => 'required|exists:categories,id',
-        'sub_category_id' => 'required|exists:sub_categories,id',
-        'year_of_manufacture' => 'required|digits:4',
-        'size' => 'required|string',
-        'model' => 'required|string',
-        'description' => 'required|string',
-        'additional_features' => 'nullable|string',
-        'images' => 'nullable|array|max:3',
-        'images.*' => 'image|mimes:jpeg,png,jpg|max:2048',
-        'video' => 'nullable|mimes:mp4,mov,avi|max:10240', // 10MB
-        'price_per_day' => 'required|numeric',
-        'price_per_hour' => 'required|numeric',
-        'work_start_time' => 'required|date_format:H:i',
-        'work_end_time' => 'required|date_format:H:i',
-        'pickup_location' => 'required|string',
-        'delivery_available' => 'required|boolean',
-        'delivery_price' => 'nullable|numeric|required_if:delivery_available,true',
-    ]);
-
-    $truck = DB::transaction(function () use ($request, $validated) {
-        
-        // الخطوة 1: استبعاد مفاتيح الوسائط من المصفوفة الرئيسية
-        $truckData = collect($validated)->except(['images', 'video'])->all();
-        
-        // الخطوة 2: إنشاء الشاحنة بالبيانات النصية فقط
-        $truck = auth()->user()->trucks()->create($truckData);
-
-        // الخطوة 3: التعامل مع الصور (إذا كانت موجودة)
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $imageFile) {
-                $path = $imageFile->store('trucks/images', 'public');
-                // إنشاء سجل في جدول `truck_images` وربطه بالشاحنة
-                $truck->images()->create(['path' => $path]);
-            }
-        }
-        
-        // الخطوة 4: التعامل مع الفيديو (إذا كان موجودًا)
-        if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store('trucks/videos', 'public');
-            // تحديث سجل الشاحنة بمسار الفيديو
-            $truck->update(['video' => $videoPath]);
-        }
-        
-        return $truck;
-    });
-
-    return response()->json(['message' => 'Truck submitted for approval.', 'truck_id' => $truck->id], 201);
-}
-
- 
-public function update(Request $request, Truck $truck)
-{
-    // 1. التحقق من أن المستخدم يملك الشاحنة
-    $this->authorize('update', $truck);
-
-    // 2. التحقق من صحة المدخلات (جميعها اختيارية)
-    // "sometimes" تعني: قم بتطبيق قواعد التحقق هذه فقط إذا كان الحقل موجودًا في الطلب.
-    $validated = $request->validate([
-        'name' => 'sometimes|required|string|max:255',
-        'category_id' => 'sometimes|required|exists:categories,id',
-        'sub_category_id' => 'sometimes|required|exists:sub_categories,id',
-        'year_of_manufacture' => 'sometimes|required|digits:4',
-        'size' => 'sometimes|required|string',
-        'model' => 'sometimes|required|string',
-        'description' => 'sometimes|required|string',
-        'additional_features' => 'nullable|string',
-        'price_per_day' => 'sometimes|required|numeric',
-        'price_per_hour' => 'sometimes|required|numeric',
-        'work_start_time' => 'sometimes|required|date_format:H:i',
-        'work_end_time' => 'sometimes|required|date_format:H:i',
-        'pickup_location' => 'sometimes|required|string',
-        'delivery_available' => 'sometimes|required|boolean',
-        'delivery_price' => 'nullable|numeric|required_if:delivery_available,true',
-        
-        'images' => 'nullable|array|max:3',
-        'images.*' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
-        'video' => 'nullable|mimes:mp4,mov,avi|max:10240',
-    ]);
-
-    // 3. تحديث البيانات داخل Transaction
-    DB::transaction(function () use ($request, $truck, $validated) {
-        
-        // 3.1 فصل البيانات النصية عن الوسائط
-        $truckData = collect($validated)->except(['images', 'video'])->all();
-        
-        // 3.2 تحديث البيانات النصية وإعادة الحالة إلى "قيد المراجعة"
-        // فقط إذا تم إرسال أي بيانات نصية
-        if (!empty($truckData)) {
-            $truck->update(array_merge($truckData, ['status' => 'pending']));
-        }
-
-        // 3.3 التعامل مع تحديث الفيديو (إذا تم إرسال ملف جديد)
-        if ($request->hasFile('video')) {
-            $videoPath = $request->file('video')->store('trucks/videos', 'public');
-            // التأكد من أن الحالة تصبح pending حتى لو تم تحديث الفيديو فقط
-            $truck->update(['video' => $videoPath, 'status' => 'pending']);
-        }
-
-        // 3.4 التعامل مع تحديث الصور (إذا تم إرسال ملفات جديدة)
-        if ($request->hasFile('images')) {
-            // حذف سجلات الصور القديمة من قاعدة البيانات
-            $truck->images()->delete();
+        $truck = DB::transaction(function () use ($request, $validated) {
             
-            // إضافة سجلات الصور الجديدة
-            foreach ($request->file('images') as $imageFile) {
-                $path = $imageFile->store('trucks/images', 'public');
-                $truck->images()->create(['path' => $path]);
-            }
-            // التأكد من أن الحالة تصبح pending حتى لو تم تحديث الصور فقط
-            $truck->update(['status' => 'pending']);
-        }
-    });
+            // الخطوة 1: استبعاد مفاتيح الوسائط من المصفوفة الرئيسية
+            $truckData = collect($validated)->except(['images', 'video'])->all();
+            
+            // الخطوة 2: إنشاء الشاحنة بالبيانات النصية فقط
+            $truck = auth()->user()->trucks()->create($truckData);
 
-    return response()->json([
-        'message' => 'Truck updated and awaiting re-approval.',
-        'truck_id' => $truck->id
-    ], 200);
-}
+            // الخطوة 3: التعامل مع الصور (إذا كانت موجودة)
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $imageFile) {
+                    $path = $imageFile->store('trucks/images', 'public');
+                    // إنشاء سجل في جدول `truck_images` وربطه بالشاحنة
+                    $truck->images()->create(['path' => $path]);
+                }
+            }
+            
+            // الخطوة 4: التعامل مع الفيديو (إذا كان موجودًا)
+            if ($request->hasFile('video')) {
+                $videoPath = $request->file('video')->store('trucks/videos', 'public');
+                // تحديث سجل الشاحنة بمسار الفيديو
+                $truck->update(['video' => $videoPath]);
+            }
+            
+            return $truck;
+        });
+
+        return response()->json(['message' => 'Truck submitted for approval.', 'truck_id' => $truck->id], 201);
+    }
 
  
-public function destroy(Truck $truck)
-{
-    // 1. التحقق من أن المستخدم يملك الشاحنة
-    $this->authorize('delete', $truck);
+    public function update(Request $request, Truck $truck)
+    {
+        // 1. التحقق من أن المستخدم يملك الشاحنة
+        $this->authorize('update', $truck);
 
-    // 2. حذف الشاحنة من قاعدة البيانات
-    // سيتم حذف الصور المرتبطة تلقائيًا بسبب onDelete('cascade')
-    $truck->delete();
-    // ملاحظة: لا نحذف الملفات من storage بناءً على طلبك
+        // 2. التحقق من صحة المدخلات (جميعها اختيارية)
+        // "sometimes" تعني: قم بتطبيق قواعد التحقق هذه فقط إذا كان الحقل موجودًا في الطلب.
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'category_id' => 'sometimes|required|exists:categories,id',
+            'sub_category_id' => 'sometimes|required|exists:sub_categories,id',
+            'year_of_manufacture' => 'sometimes|required|digits:4',
+            'size' => 'sometimes|required|string',
+            'model' => 'sometimes|required|string',
+            'description' => 'sometimes|required|string',
+            'additional_features' => 'nullable|string',
+            'price_per_day' => 'sometimes|required|numeric',
+            'price_per_hour' => 'sometimes|required|numeric',
+            'work_start_time' => 'sometimes|required|date_format:H:i',
+            'work_end_time' => 'sometimes|required|date_format:H:i',
+            'pickup_location' => 'sometimes|required|string',
+            'delivery_available' => 'sometimes|required|boolean',
+            'delivery_price' => 'nullable|numeric|required_if:delivery_available,true',
+            'latitude'  => 'required_with:longitude|numeric',
+            'longitude' => 'required_with:latitude|numeric',
+            'images' => 'nullable|array|max:3',
+            'images.*' => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
+            'video' => 'nullable|mimes:mp4,mov,avi|max:10240',
+        ]);
 
-    return response()->json(['message' => 'Truck has been successfully deleted.'], 200);
+        // 3. تحديث البيانات داخل Transaction
+        DB::transaction(function () use ($request, $truck, $validated) {
+            
+            // 3.1 فصل البيانات النصية عن الوسائط
+            $truckData = collect($validated)->except(['images', 'video'])->all();
+            
+            // 3.2 تحديث البيانات النصية وإعادة الحالة إلى "قيد المراجعة"
+            // فقط إذا تم إرسال أي بيانات نصية
+            if (!empty($truckData)) {
+                $truck->update(array_merge($truckData, ['status' => 'pending']));
+            }
+
+            // 3.3 التعامل مع تحديث الفيديو (إذا تم إرسال ملف جديد)
+            if ($request->hasFile('video')) {
+                $videoPath = $request->file('video')->store('trucks/videos', 'public');
+                // التأكد من أن الحالة تصبح pending حتى لو تم تحديث الفيديو فقط
+                $truck->update(['video' => $videoPath, 'status' => 'pending']);
+            }
+
+            // 3.4 التعامل مع تحديث الصور (إذا تم إرسال ملفات جديدة)
+            if ($request->hasFile('images')) {
+                // حذف سجلات الصور القديمة من قاعدة البيانات
+                $truck->images()->delete();
+                
+                // إضافة سجلات الصور الجديدة
+                foreach ($request->file('images') as $imageFile) {
+                    $path = $imageFile->store('trucks/images', 'public');
+                    $truck->images()->create(['path' => $path]);
+                }
+                // التأكد من أن الحالة تصبح pending حتى لو تم تحديث الصور فقط
+                $truck->update(['status' => 'pending']);
+            }
+        });
+
+        return response()->json([
+            'message' => 'Truck updated and awaiting re-approval.',
+            'truck_id' => $truck->id
+        ], 200);
+    }
+
+ 
+    public function destroy(Truck $truck)
+    {
+        // 1. التحقق من أن المستخدم يملك الشاحنة
+        $this->authorize('delete', $truck);
+
+        // 2. حذف الشاحنة من قاعدة البيانات
+        // سيتم حذف الصور المرتبطة تلقائيًا بسبب onDelete('cascade')
+        $truck->delete();
+        // ملاحظة: لا نحذف الملفات من storage بناءً على طلبك
+
+        return response()->json(['message' => 'Truck has been successfully deleted.'], 200);
+    }
+    public function mapSearch(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'nullable|exists:categories,id',
+            'sub_category_id' => 'nullable|exists:sub_categories,id',
+            // اختياري: البحث في نطاق معين (مثلاً 50 كم)
+            'lat' => 'nullable|numeric',
+            'lng' => 'nullable|numeric',
+            'radius' => 'nullable|numeric', 
+        ]);
+
+        $query = Truck::where('status', 'active')->with(['category', 'subCategory', 'images']);
+
+        // فلاتر التصنيفات
+        $query->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id));
+        $query->when($request->sub_category_id, fn($q) => $q->where('sub_category_id', $request->sub_category_id));
+
+        // فلاتر الموقع (إذا أرسل المستخدم موقعه ونطاق البحث)
+        if ($request->lat && $request->lng && $request->radius) {
+            $radius = $request->radius; // بالكيلومتر
+            $query->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", [$request->lat, $request->lng, $request->lat])
+                ->having('distance', '<=', $radius)
+                ->orderBy('distance');
+        } else {
+            $query->latest();
+        }
+
+        // جلب البيانات (عادة في الخريطة لا نستخدم Pagination بل نجلب الكل أو عدداً كبيراً)
+        $trucks = $query->get();
+
+        return UserTruckResource::collection($trucks);
+    }
 }
-}
+

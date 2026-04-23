@@ -78,3 +78,4 @@ Route::get('/trucks/{truck}/calendar', [CalendarController::class, 'getBookedDat
 // مسارات للعودة والويب هوك (يجب أن تكون عامة)
 Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
+Route::get('/trucks-map', [TruckController::class, 'mapSearch']);

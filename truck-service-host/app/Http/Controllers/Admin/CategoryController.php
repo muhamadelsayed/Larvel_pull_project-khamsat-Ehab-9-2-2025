@@ -24,10 +24,16 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'icon' => 'required|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'map_icon' => 'nullable|image|mimes:png,svg|max:512', // يفضل PNG أو SVG وبحجم صغير
+
         ]);
 
         if ($request->hasFile('icon')) {
             $validated['icon'] = $request->file('icon')->store('categories', 'public');
+        }
+        // الحفظ
+        if ($request->hasFile('map_icon')) {
+            $validated['map_icon'] = $request->file('map_icon')->store('categories/map_icons', 'public');
         }
 
         Category::create($validated);
@@ -44,6 +50,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
+            'map_icon' => 'nullable|image|mimes:png,svg|max:512', // يفضل PNG أو SVG وبحجم صغير
         ]);
 
         if ($request->hasFile('icon')) {
@@ -52,6 +59,14 @@ class CategoryController extends Controller
                 Storage::disk('public')->delete($category->icon);
             }
             $validated['icon'] = $request->file('icon')->store('categories', 'public');
+        }
+                // الحفظ
+        if ($request->hasFile('map_icon')) {
+            // حذف الأيقونة القديمة إذا وجدت
+            if ($category->map_icon) {
+                Storage::disk('public')->delete($category->map_icon);
+            }
+            $category->map_icon = $request->file('map_icon')->store('categories/map_icons', 'public');
         }
 
         $category->update($validated);

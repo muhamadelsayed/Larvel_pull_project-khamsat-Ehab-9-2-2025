@@ -34,6 +34,8 @@ class TruckResource extends JsonResource
                 'phone' => $this->user->phone,
                 'profile_photo_url' => $this->user->profile_photo_url, // <-- تم الإضافة
             ],
+            'latitude' => (float) $this->latitude,
+            'longitude' => (float) $this->longitude,
             'category' => $this->category->name,
             'sub_category' => $this->subCategory->name,
             'images' => $this->images->map(fn($image) => asset('storage/' . $image->path)),
