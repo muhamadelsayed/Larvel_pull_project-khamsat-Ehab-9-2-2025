@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Setting;
 use App\Models\Policy;
+use Illuminate\Support\Facades\Storage;
+
 
 
 class SettingController extends Controller
@@ -58,4 +60,38 @@ public function updatePolicy(Request $request, Policy $policy) {
     
     return back()->with('success', 'تم تحديث البند بنجاح');
 }
+public function showLandingPage() {
+    $settings = Setting::pluck('value', 'key')->all();
+    return view('landing', compact('settings'));
+}
+// عرض صفحة الإعدادات للأدمن
+public function editLandingPage() {
+    $settings = Setting::pluck('value', 'key')->all();
+    return view('admin.settings.landing', compact('settings'));
+}
+
+// تحديث الإعدادات والملفات
+public function updateLandingPage(Request $request) {
+    $data = $request->all();
+    
+    foreach ($data as $key => $value) {
+        if ($request->hasFile($key)) {
+            // معالجة الملفات (صور أو تطبيق)
+            $oldValue = Setting::where('key', $key)->first()->value ?? null;
+            if ($oldValue) {
+                Storage::disk('public')->delete($oldValue);
+            }
+            
+            $path = $key === 'android_app_file' ? 'apps' : 'landing';
+            $value = $request->file($key)->store($path, 'public');
+        }
+        
+        if ($key !== '_token') {
+            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
+        }
+    }
+    
+    return back()->with('success', 'تم تحديث إعدادات صفحة الهبوط بنجاح');
+}
+
 }
