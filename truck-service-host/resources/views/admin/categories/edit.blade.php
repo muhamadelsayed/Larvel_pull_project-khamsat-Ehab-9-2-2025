@@ -33,9 +33,16 @@
                 <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">تحديث</button>
             </div>
             <div class="mt-4">
-                <label class="block text-sm font-bold mb-2">أيقونة الخريطة (Map Pin)</label>
-                <input type="file" name="map_icon" class="w-full border rounded-lg px-3 py-2">
-                <p class="text-xs text-gray-500 mt-1">يفضل أن تكون بصيغة PNG شفافة وبحجم 64x64 بكسل.</p>
+                <label class="block text-sm font-bold mb-2">أيقونة الخريطة الحالية (Map Pin)</label>
+                @if($category->map_icon)
+                    <div class="mb-3 p-2 border w-max rounded-lg bg-gray-50">
+                        <img src="{{ asset('storage/' . $category->map_icon) }}" class="w-12 h-12 object-contain">
+                    </div>
+                @endif
+                
+                <input type="file" name="map_icon" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                <p class="text-xs text-gray-500 mt-1 italic">ارفع صورة جديدة فقط إذا كنت ترغب في استبدال الأيقونة الحالية.</p>
+                @error('map_icon') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
         </form>
     </div>

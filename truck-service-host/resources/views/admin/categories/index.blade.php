@@ -19,6 +19,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الأيقونة</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">أيقونة الخريطة</th>
                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الاسم</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">عدد التصنيفات الفرعية</th>
                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">إجراءات</th>
@@ -29,6 +30,15 @@
                         <tr>
                             <td class="px-6 py-4">
                                 <img src="{{ asset('storage/' . $category->icon) }}" alt="{{ $category->name }}" class="w-10 h-10 rounded-full object-cover">
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($category->map_icon)
+                                    <img src="{{ asset('storage/' . $category->map_icon) }}" 
+                                        alt="Map Pin" 
+                                        class="w-10 h-10 object-contain bg-gray-100 rounded border p-1">
+                                @else
+                                    <span class="text-gray-400 text-xs italic">غير مضافة</span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $category->name }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

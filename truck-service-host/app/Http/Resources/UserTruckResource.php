@@ -15,14 +15,14 @@ class UserTruckResource extends JsonResource
             'pickup_location' => $this->pickup_location,
             'latitude'  => $this->latitude ? (float) $this->latitude : 0.0,
             'longitude' => $this->longitude ? (float) $this->longitude : 0.0,
-            'map_icon_url' => $this->category->map_icon ? asset('storage/' . $this->category->map_icon) : asset('assets/default-pin.png'),
+            'map_icon_url' => $this->category?->map_icon ? asset('storage/' . $this->category->map_icon) : asset('assets/default-pin.png'),
             'price_per_day' => $this->price_per_day,
             'status' => $this->status,
-            'category' => $this->category->name,
+            'category' => $this->category?->name,
             'name' => $this->name,
-            'sub_category' => $this->subCategory->name,
+            'sub_category' => $this->subCategory?->name,
             // جلب رابط الصورة الأولى فقط (إذا وجدت)
-            'main_image' => $this->images->first() ? asset('storage/' . $this->images->first()->path) : null,
+            'main_image' => $this->images?->first() ? asset('storage/' . $this->images->first()->path) : null,
         ];
     }
 }

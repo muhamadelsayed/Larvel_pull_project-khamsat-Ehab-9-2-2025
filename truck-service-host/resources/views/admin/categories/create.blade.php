@@ -28,10 +28,12 @@
                 <a href="{{ route('admin.categories.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">إلغاء</a>
                 <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">حفظ</button>
             </div>
-            <div class="mt-4">
-                <label class="block text-sm font-bold mb-2">أيقونة الخريطة (Map Pin)</label>
-                <input type="file" name="map_icon" class="w-full border rounded-lg px-3 py-2">
-                <p class="text-xs text-gray-500 mt-1">يفضل أن تكون بصيغة PNG شفافة وبحجم 64x64 بكسل.</p>
+            <div class="mt-6">
+                <label for="map_icon" class="block text-sm font-bold text-gray-700 mb-2">أيقونة الخريطة (Map Pin)</label>
+                <input type="file" name="map_icon" id="map_icon" 
+                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <p class="text-xs text-gray-500 mt-2 italic">يفضل أن تكون بصيغة PNG شفافة وبحجم صغير (مثلاً 64x64 بكسل).</p>
+                @error('map_icon') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
             </div>
         </form>
     </div>
