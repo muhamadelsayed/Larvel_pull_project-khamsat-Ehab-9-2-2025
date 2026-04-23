@@ -24,8 +24,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'icon' => 'required|image|mimes:jpeg,png,jpg,svg|max:2048',
-            'map_icon' => 'nullable|image|mimes:png,svg|max:512', // يفضل PNG أو SVG وبحجم صغير
-
+            'map_icon' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:1024', 
         ]);
 
         if ($request->hasFile('icon')) {
@@ -50,7 +49,7 @@ class CategoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
             'icon' => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
-            'map_icon' => 'nullable|image|mimes:png,svg|max:512', // يفضل PNG أو SVG وبحجم صغير
+            'map_icon' => 'nullable|image|mimes:jpeg,jpg,png,gif,svg,webp|max:1024', 
         ]);
 
         if ($request->hasFile('icon')) {

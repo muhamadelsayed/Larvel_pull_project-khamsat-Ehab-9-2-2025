@@ -15,7 +15,7 @@ class UserTruckResource extends JsonResource
             'pickup_location' => $this->pickup_location,
             'latitude'  => $this->latitude ? (float) $this->latitude : 0.0,
             'longitude' => $this->longitude ? (float) $this->longitude : 0.0,
-            'map_icon_url' => $this->category?->map_icon ? asset('storage/' . $this->category->map_icon) : asset('assets/default-pin.png'),
+            'map_icon_url' => $this->category?->map_icon ? asset('storage/categories/map_icons/' . $this->category->map_icon) : asset('assets/default-pin.png'),
             'price_per_day' => $this->price_per_day,
             'status' => $this->status,
             'category' => $this->category?->name,
