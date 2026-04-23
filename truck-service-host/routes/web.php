@@ -97,8 +97,8 @@ Route::middleware(['auth:web', 'can:view users'])->prefix('admin')->name('admin.
     Route::post('/settings/policies', [SettingController::class, 'storePolicy'])->name('policies.store');
     Route::delete('/settings/policies/{policy}', [SettingController::class, 'destroyPolicy'])->name('policies.destroy');
     Route::patch('/settings/policies/{policy}', [App\Http\Controllers\Admin\SettingController::class, 'updatePolicy'])->name('admin.policies.update');
-    Route::get('/settings/landing', [SettingController::class, 'editLandingPage'])->name('admin.settings.landing');
-Route::post('/settings/landing', [SettingController::class, 'updateLandingPage'])->name('admin.settings.landing.update');
+    Route::get('/settings/landing', [SettingController::class, 'editLandingPage'])->name('settings.landing');
+Route::post('/settings/landing', [SettingController::class, 'updateLandingPage'])->name('settings.landing.update');
     });
 
 Route::get('/system/run-booking-completion', function () {
