@@ -35,7 +35,9 @@
             <!-- Footer Action -->
             <div class="mt-16 text-center">
                 <p class="text-gray-500 mb-6">لديك استفسار حول هذه البنود؟</p>
-                <a href="mailto:support@bull-station.com" class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 transition shadow-lg">
+                {{-- البريد الإلكتروني الديناميكي --}}
+                <a href="mailto:{{ $settings['support_email'] ?? 'support@bull-station.com' }}" 
+                class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 transition shadow-lg">
                     تواصل مع الدعم الفني
                 </a>
             </div>

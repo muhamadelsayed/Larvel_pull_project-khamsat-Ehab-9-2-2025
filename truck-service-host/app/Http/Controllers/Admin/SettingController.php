@@ -47,7 +47,9 @@ public function destroyPolicy(Policy $policy) {
 // عرض الصفحة العامة
 public function publicPolicies() {
     $policies = Policy::orderBy('sort_order')->get();
-    return view('policies', compact('policies'));
+    // أضف جلب الإعدادات هنا أيضاً
+    $settings = Setting::pluck('value', 'key')->all();
+    return view('policies', compact('policies', 'settings'));
 }
 // تحديث بند موجود
 public function updatePolicy(Request $request, Policy $policy) {
