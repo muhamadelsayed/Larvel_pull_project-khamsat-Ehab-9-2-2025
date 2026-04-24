@@ -72,26 +72,26 @@ public function editLandingPage() {
 
 // تحديث الإعدادات والملفات
 public function updateLandingPage(Request $request) {
-    $data = $request->all();
+    $data = $request->except('_token');
     
     foreach ($data as $key => $value) {
         if ($request->hasFile($key)) {
-            // معالجة الملفات (صور أو تطبيق)
-            $oldValue = Setting::where('key', $key)->first()->value ?? null;
-            if ($oldValue) {
-                Storage::disk('public')->delete($oldValue);
-            }
+            // حذف القديم
+            $old = Setting::where('key', $key)->first()->value ?? null;
+            if ($old) { \Storage::disk('public')->delete($old); }
             
-            $path = $key === 'android_app_file' ? 'apps' : 'landing';
-            $value = $request->file($key)->store($path, 'public');
+            // تحديد مجلد الحفظ
+            $folder = 'landing';
+            if ($key === 'android_app_file') $folder = 'apps';
+            if ($key === 'app_logo') $folder = 'brand';
+            
+            $value = $request->file($key)->store($folder, 'public');
         }
         
-        if ($key !== '_token') {
-            Setting::updateOrCreate(['key' => $key], ['value' => $value]);
-        }
+        Setting::updateOrCreate(['key' => $key], ['value' => $value]);
     }
     
-    return back()->with('success', 'تم تحديث إعدادات صفحة الهبوط بنجاح');
+    return back()->with('success', 'تم تحديث البيانات والملفات بنجاح');
 }
 
 }
