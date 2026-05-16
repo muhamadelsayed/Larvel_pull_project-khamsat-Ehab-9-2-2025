@@ -43,9 +43,13 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'profile_photo_path',
+        'identity_image',        // <-- إخفاء المسار الخام للهوية
+        'driving_license_image', // <-- إخفاء المسار الخام للرخصة
     ];
     protected $appends = [
         'profile_photo_url', 
+        'identity_image_url',        // <-- إلحاق الرابط الكامل للهوية
+        'driving_license_image_url', // <-- إلحاق الرابط الكامل للرخصة
     ];
 
     /**
@@ -80,7 +84,27 @@ class User extends Authenticatable
     }
 
     return asset('storage/' . $this->profile_photo_path);
-}
+    }
+    public function getIdentityImageUrlAttribute(): ?string
+    {
+        if (!$this->identity_image) return null;
+        
+        return Str::startsWith($this->identity_image, 'http') 
+            ? $this->identity_image 
+            : asset('storage/' . $this->identity_image);
+    }
+
+    /**
+     * رابط صورة رخصة القيادة
+     */
+    public function getDrivingLicenseImageUrlAttribute(): ?string
+    {
+        if (!$this->driving_license_image) return null;
+
+        return Str::startsWith($this->driving_license_image, 'http') 
+            ? $this->driving_license_image 
+            : asset('storage/' . $this->driving_license_image);
+    }
     public function fcmTokens(): HasMany
     {
         return $this->hasMany(FcmToken::class);
