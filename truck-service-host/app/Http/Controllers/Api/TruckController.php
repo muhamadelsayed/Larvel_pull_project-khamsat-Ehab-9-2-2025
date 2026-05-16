@@ -235,36 +235,55 @@ class TruckController extends Controller
         return response()->json(['message' => 'Truck has been successfully deleted.'], 200);
     }
     public function mapSearch(Request $request)
-    {
-        $request->validate([
-            'category_id' => 'nullable|exists:categories,id',
-            'sub_category_id' => 'nullable|exists:sub_categories,id',
-            // اختياري: البحث في نطاق معين (مثلاً 50 كم)
-            'lat' => 'nullable|numeric',
-            'lng' => 'nullable|numeric',
-            'radius' => 'nullable|numeric', 
-        ]);
+{
+    // 1. تحديث التحقق (Validation) ليشمل الحقول الجديدة
+    $request->validate([
+        'category_id' => 'nullable|exists:categories,id',
+        'name' => 'nullable|string',
+        'year' => 'nullable|integer',
+        'model' => 'nullable|string',
+        'lat' => 'nullable|numeric',
+        'lng' => 'nullable|numeric',
+        'radius' => 'nullable|numeric', 
+    ]);
 
-        $query = Truck::where('status', 'active')->with(['category', 'subCategory', 'images']);
+    $query = Truck::where('status', 'active')->with(['category', 'subCategory', 'images']);
 
-        // فلاتر التصنيفات
-        $query->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id));
-        $query->when($request->sub_category_id, fn($q) => $q->where('sub_category_id', $request->sub_category_id));
+    // 2. تطبيق فلاتر البحث الجديدة
+    // البحث بالاسم (بحث جزئي)
+    $query->when($request->name, function ($q) use ($request) {
+        $q->where('name', 'like', '%' . $request->name . '%');
+    });
 
-        // فلاتر الموقع (إذا أرسل المستخدم موقعه ونطاق البحث)
-        if ($request->lat && $request->lng && $request->radius) {
-            $radius = $request->radius; // بالكيلومتر
-            $query->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", [$request->lat, $request->lng, $request->lat])
-                ->having('distance', '<=', $radius)
-                ->orderBy('distance');
-        } else {
-            $query->latest();
-        }
+    // البحث بالموديل (بحث جزئي)
+    $query->when($request->model, function ($q) use ($request) {
+        $q->where('model', 'like', '%' . $request->model . '%');
+    });
 
-        // جلب البيانات (عادة في الخريطة لا نستخدم Pagination بل نجلب الكل أو عدداً كبيراً)
-        $trucks = $query->get();
+    // البحث بسنة التصنيع
+    $query->when($request->year, function ($q) use ($request) {
+        $q->where('year_of_manufacture', $request->year);
+    });
 
-        return UserTruckResource::collection($trucks);
+    // فلتر التصنيف القديم
+    $query->when($request->category_id, fn($q) => $q->where('category_id', $request->category_id));
+
+    // 3. منطق المسافة الجغرافية (Haversine Formula)
+    if ($request->lat && $request->lng && $request->radius) {
+        $lat = $request->lat;
+        $lng = $request->lng;
+        $radius = $request->radius;
+
+        $query->selectRaw("*, (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude)))) AS distance", [$lat, $lng, $lat])
+            ->having('distance', '<=', $radius)
+            ->orderBy('distance');
+    } else {
+        $query->latest();
     }
+
+    $trucks = $query->get();
+
+    return UserTruckResource::collection($trucks);
+}
 }
 

@@ -42,6 +42,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'profile_photo_path',
+    ];
+    protected $appends = [
+        'profile_photo_url', 
     ];
 
     /**
@@ -53,6 +57,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'blocked_at' => 'datetime',
+        'profile_photo_url' => 'string',
     ];
      public function trucks(): HasMany
         {
@@ -65,16 +70,17 @@ class User extends Authenticatable
         }
 
     public function getProfilePhotoUrlAttribute(): string
-        {
-            // إذا كان المسار يبدأ بـ http، فإنه رابط خارجي، أعده كما هو.
-            if (Str::startsWith($this->profile_photo_path, 'http')) {
-                return $this->profile_photo_path;
-            }
-            
-            // وإلا، فهو مسار داخلي، قم ببناء الرابط باستخدام asset().
-            // هذا سيجعل الكود جاهزًا عندما نسمح للمستخدم برفع صورته الخاصة.
-            return asset('storage/' . $this->profile_photo_path);
-        }
+{
+    if (!$this->profile_photo_path) {
+        return "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png";
+    }
+
+    if (Str::startsWith($this->profile_photo_path, 'http')) {
+        return $this->profile_photo_path;
+    }
+
+    return asset('storage/' . $this->profile_photo_path);
+}
     public function fcmTokens(): HasMany
     {
         return $this->hasMany(FcmToken::class);
