@@ -200,63 +200,67 @@ public function resetPassword(Request $request)
     }
 
     public function update_profile(Request $request)
-    {
-        // 1. الحصول على المستخدم المصادق عليه
-        $user = $request->user();
+{
+    // 1. الحصول على المستخدم المصادق عليه
+    $user = $request->user();
 
-        // 2. التحقق من صحة المدخلات
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'password' => 'sometimes|required|string|min:8|confirmed',
-            'location' => 'sometimes|required|string|max:255',
-            'driving_license_image' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
-            'identity_image' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
-            'profile_photo' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+    // 2. التحقق من صحة المدخلات (استخدام الأسماء المطلوبة من مطور الهاتف)
+    $validator = Validator::make($request->all(), [
+        'name' => 'sometimes|required|string|max:255',
+        'password' => 'sometimes|required|string|min:8|confirmed',
+        'location' => 'sometimes|required|string|max:255',
+        'driving_license_image_url' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
+        'identity_image_url' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
+        'profile_photo_url' => 'sometimes|required|image|mimes:jpeg,png,jpg|max:2048',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        // 3. تحديث الحقول النصية (إذا كانت موجودة)
-        if ($request->has('name')) {
-            $user->name = $request->name;
-        }
-        if ($request->filled('password')) { // filled() يتحقق من وجوده وأنه ليس فارغًا
-            $user->password = Hash::make($request->password);
-        }
-        if ($request->has('location')) {
-            $user->location = $request->location;
-        }
-
-        // 4. تحديث الصور (إذا كانت موجودة)
-        if ($request->hasFile('driving_license_image')) {
-            // استخدام "public" disk الذي قمنا بإعداده لحفظ الملفات في public/storage
-            $path = $request->file('driving_license_image')->store('driving_licenses', 'public');
-            $user->driving_license_image = $path;
-        }
-        if ($request->hasFile('identity_image')) {
-            $path = $request->file('identity_image')->store('identity_images', 'public');
-            $user->identity_image = $path;
-        }
-        if ($request->hasFile('profile_photo')) {
-            // -->> الإصلاح الرئيسي هنا <<--
-            // الحفظ في العمود الصحيح 'profile_photo_path'
-            $path = $request->file('profile_photo')->store('profile_photos', 'public');
-            $user->profile_photo_path = $path;
-        }
-
-        // 5. الحفظ الذكي (فقط إذا كان هناك تغييرات)
-        if ($user->isDirty()) { // <-- استخدام isDirty() الصحيحة
-            $user->save();
-        }
-
-        // 6. إرجاع استجابة نظيفة ومحدثة
-        return response()->json([
-            'message' => 'Profile updated successfully.',
-            'user' => $user->fresh()->only([ // fresh() لإعادة تحميل النموذج من قاعدة البيانات
-                'id', 'name', 'phone', 'account_type', 'location', 'profile_photo_url'
-            ])
-        ], 200);
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
     }
+
+    // 3. تحديث الحقول النصية (إذا كانت موجودة)
+    if ($request->has('name')) {
+        $user->name = $request->name;
+    }
+    if ($request->filled('password')) {
+        $user->password = Hash::make($request->password);
+    }
+    if ($request->has('location')) {
+        $user->location = $request->location;
+    }
+
+    // 4. تحديث الصور وحفظها في المسارات الصحيحة بقاعدة البيانات
+    if ($request->hasFile('driving_license_image_url')) {
+        $path = $request->file('driving_license_image_url')->store('driving_licenses', 'public');
+        $user->driving_license_image = $path;
+    }
+    if ($request->hasFile('identity_image_url')) {
+        $path = $request->file('identity_image_url')->store('identity_images', 'public');
+        $user->identity_image = $path;
+    }
+    if ($request->hasFile('profile_photo_url')) {
+        $path = $request->file('profile_photo_url')->store('profile_photos', 'public');
+        $user->profile_photo_path = $path;
+    }
+
+    // 5. الحفظ الذكي (فقط إذا كان هناك تغييرات)
+    if ($user->isDirty()) {
+        $user->save();
+    }
+
+    // 6. إرجاع استجابة نظيفة ومحدثة تشمل جميع الروابط المطلوبة
+    return response()->json([
+        'message' => 'Profile updated successfully.',
+        'user' => $user->fresh()->only([
+            'id', 
+            'name', 
+            'phone', 
+            'account_type', 
+            'location', 
+            'profile_photo_url',
+            'identity_image_url',        // <-- تم إضافتها هنا لتظهر في الرد
+            'driving_license_image_url'  // <-- تم إضافتها هنا لتظهر في الرد
+        ])
+    ], 200);
+}
 }
