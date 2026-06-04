@@ -5,7 +5,7 @@
         @csrf
         
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- النصوص -->
+            <!-- القسم الأول: المحتوى النصي -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
                 <h3 class="font-bold text-gray-800 border-b pb-2">المحتوى النصي</h3>
                 <div>
@@ -27,26 +27,48 @@
                 </div>
             </div>
 
-            <!-- روابط التحميل والشعار -->
+            <!-- القسم الثاني: روابط وتحميل التطبيق (تمت إعادة الهيكلة) -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                <h3 class="font-bold text-gray-800 border-b pb-2">روابط التحميل والهوية</h3>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1 text-indigo-600">شعار التطبيق (Logo)</label>
-                    <input type="file" name="app_logo" class="w-full text-xs">
-                    @if(isset($settings['app_logo']))
-                        <img src="{{ asset('storage/'.$settings['app_logo']) }}" class="h-12 mt-2">
-                    @endif
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1 text-green-600">ملف أندرويد (APK)</label>
-                    <input type="file" name="android_app_file" class="w-full text-xs">
-                    @if(isset($settings['android_app_file']))
-                        <p class="text-[10px] mt-1 text-gray-400 truncate">{{ $settings['android_app_file'] }}</p>
-                    @endif
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 mb-1 text-blue-600">رابط متجر أبل (App Store)</label>
-                    <input type="text" name="ios_app_link" value="{{ $settings['ios_app_link'] ?? '' }}" placeholder="https://apps.apple.com/..." class="w-full border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                <h3 class="font-bold text-gray-800 border-b pb-2">روابط وتحميل التطبيق (ملفات ومتاجر)</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- أندرويد -->
+                    <div class="space-y-4 border-l pl-4 border-gray-100">
+                        <h4 class="font-bold text-green-600 flex items-center gap-2">
+                            <i class="fab fa-android text-xl"></i> نظام أندرويد (Android)
+                        </h4>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">ملف التطبيق المباشر (APK)</label>
+                            <input type="file" name="android_app_file" class="w-full text-xs">
+                            @if(isset($settings['android_app_file']))
+                                <p class="text-[10px] mt-1 text-gray-400 truncate">الملف الحالي: {{ $settings['android_app_file'] }}</p>
+                            @endif
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">رابط متجر جوجل بلاي (Google Play)</label>
+                            <input type="text" name="android_app_link" value="{{ $settings['android_app_link'] ?? '' }}" placeholder="https://play.google.com/store/apps/..." class="w-full border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <!-- آيفون -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fab fa-apple text-xl"></i> نظام آيفون (iOS)
+                        </h4>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">ملف التطبيق المباشر (IPA / Manifest)</label>
+                            <input type="file" name="ios_app_file" class="w-full text-xs">
+                            @if(isset($settings['ios_app_file']))
+                                <p class="text-[10px] mt-1 text-gray-400 truncate">الملف الحالي: {{ $settings['ios_app_file'] }}</p>
+                            @endif
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">رابط متجر تطبيقات أبل (App Store)</label>
+                            <input type="text" name="ios_app_link" value="{{ $settings['ios_app_link'] ?? '' }}" placeholder="https://apps.apple.com/..." class="w-full border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

@@ -79,6 +79,12 @@
             .screen-wrap.side { width: 80%; transform: none !important; }
             .screen-wrap.center { width: 90%; transform: scale(1) !important; }
         }
+         /* التنسيقات الإضافية للأزرار الشفافة */
+  .btn-primary-outline{background:transparent;color:var(--indigo);border:2px solid var(--indigo);box-shadow:none}
+  .btn-primary-outline:hover{background:var(--indigo-light);box-shadow:0 4px 15px rgba(79,70,229,0.15)}
+  
+  .btn-dark-outline{background:transparent;color:var(--slate);border:2px solid var(--slate);box-shadow:none}
+  .btn-dark-outline:hover{background:#f1f5f9;box-shadow:0 4px 15px rgba(15,23,42,0.1)}
     </style>
 
     <div class="page">
@@ -96,27 +102,51 @@
             <h1>{{ $settings['landing_title'] ?? 'نقل المعدات الثقيلة' }}<br><span>بلمسة واحدة</span></h1>
             <p class="hero-sub">{{ $settings['landing_subtitle'] ?? 'منصة بول ستيشن تربطك بمئات الشاحنات والمعدات القريبة منك في أقل من دقيقة، باحترافية وأمان تام.' }}</p>
 
-            <div class="btns">
-                @if(isset($settings['android_app_file']))
-                    <a href="{{ asset('storage/'.$settings['android_app_file']) }}" class="btn btn-primary">
-                        <div class="btn-icon"><i class="fab fa-android"></i></div>
-                        <div class="btn-text-wrap">
-                            <span class="btn-hint">تحميل مباشر</span>
-                            أندرويد APK
-                        </div>
-                    </a>
-                @endif
+               <div class="btns">
+      <!-- 1. تحميل أندرويد المباشر (APK) -->
+      @if(isset($settings['android_app_file']))
+        <a href="{{ asset('storage/'.$settings['android_app_file']) }}" class="btn btn-primary">
+          <div class="btn-icon"><i class="fab fa-android"></i></div>
+          <div class="btn-text-wrap">
+            <span class="btn-hint">تحميل مباشر</span>
+            أندرويد APK
+          </div>
+        </a>
+      @endif
 
-                @if(isset($settings['ios_app_link']))
-                    <a href="{{ $settings['ios_app_link'] }}" target="_blank" class="btn btn-dark">
-                        <div class="btn-icon"><i class="fab fa-apple"></i></div>
-                        <div class="btn-text-wrap">
-                            <span class="btn-hint">متوفر على</span>
-                            App Store
-                        </div>
-                    </a>
-                @endif
-            </div>
+      <!-- 2. رابط متجر جوجل بلاي -->
+      @if(isset($settings['android_app_link']))
+        <a href="{{ $settings['android_app_link'] }}" target="_blank" class="btn btn-primary-outline">
+          <div class="btn-icon"><i class="fab fa-google-play"></i></div>
+          <div class="btn-text-wrap">
+            <span class="btn-hint" style="color:var(--indigo)">المتجر الرسمي</span>
+            Google Play
+          </div>
+        </a>
+      @endif
+
+      <!-- 3. رابط متجر أبل ستور -->
+      @if(isset($settings['ios_app_link']))
+        <a href="{{ $settings['ios_app_link'] }}" target="_blank" class="btn btn-dark">
+          <div class="btn-icon"><i class="fab fa-apple"></i></div>
+          <div class="btn-text-wrap">
+            <span class="btn-hint">المتجر الرسمي</span>
+            App Store
+          </div>
+        </a>
+      @endif
+
+      <!-- 4. تحميل آيفون المباشر (للتجربة والـ Beta) -->
+      @if(isset($settings['ios_app_file']))
+        <a href="{{ asset('storage/'.$settings['ios_app_file']) }}" class="btn btn-dark-outline">
+          <div class="btn-icon"><i class="fas fa-file-invoice"></i></div>
+          <div class="btn-text-wrap">
+            <span class="btn-hint" style="color:var(--slate)">تحميل مباشر</span>
+            آيفون IPA
+          </div>
+        </a>
+      @endif
+    </div>
         </div>
 
         <!-- SCREENS -->
