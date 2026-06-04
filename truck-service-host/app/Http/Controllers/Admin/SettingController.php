@@ -27,7 +27,50 @@ public function update(Request $request) {
     return back()->with('success', 'تم تحديث وضع الدفع بنجاح');
 }
 
+// إضافة بند جديد
+public function storePolicy(Request $request) {
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+    ]);
 
+    Policy::create($validated);
+    return back()->with('success', 'تم إضافة البند بنجاح');
+}
+
+// حذف بند
+public function destroyPolicy(Policy $policy) {
+    $policy->delete();
+    return back()->with('success', 'تم حذف البند بنجاح');
+}
+
+// عرض الصفحة العامة
+public function publicPolicies() {
+    $policies = Policy::orderBy('sort_order')->get();
+    // أضف جلب الإعدادات هنا أيضاً
+    $settings = Setting::pluck('value', 'key')->all();
+    return view('policies', compact('policies', 'settings'));
+}
+// تحديث بند موجود
+public function updatePolicy(Request $request, Policy $policy) {
+    $validated = $request->validate([
+        'title' => 'required|string|max:255',
+        'content' => 'required|string',
+    ]);
+
+    $policy->update($validated);
+    
+    return back()->with('success', 'تم تحديث البند بنجاح');
+}
+public function showLandingPage() {
+    $settings = Setting::pluck('value', 'key')->all();
+    return view('landing', compact('settings'));
+}
+// عرض صفحة الإعدادات للأدمن
+public function editLandingPage() {
+    $settings = Setting::pluck('value', 'key')->all();
+    return view('admin.settings.landing', compact('settings'));
+}
 public function updateLandingPage(Request $request) {
     $data = $request->except('_token');
     
